@@ -1,6 +1,6 @@
 # Capacity Planning - Support
 
-My take on capacity planning for customer support. Use your own levers, sweep AI coverage, and watch headcount and blended cost per contact move - a simulation of something that's probably been sitting at the back of your head. You might be surprised.
+My take on capacity planning for customer support. Set your own numbers, move the coverage slider, and watch headcount and blended cost per contact shift.
 
 Open `index.html` in a browser. That's the whole thing.
 
@@ -24,25 +24,25 @@ And the reason the survivors are slower - the exact mechanism this prototype is 
 > "As AI absorbs routine interactions, the cases that reach a human are no longer average. They're the unresolved edge cases... the exceptions or the moments where the model lacked context or confidence." ... "Automation reduces repetitive labor while heightening accountability."
 > - [Ryan Wang (Assembled), Forbes, Apr 2 2026](https://www.forbes.com/councils/forbestechcouncil/2026/04/02/why-the-impact-of-ai-on-customer-support-isnt-what-leaders-expected/)
 
-My answer is simple: AI cuts ticket volume, but it doesn't cut support work in a straight line.
+My answer is simple: automation cuts ticket volume, but it doesn't cut support work in a straight line.
 
-AI handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "AI handled 70%, so cut 70%" doesn't hold.
+The bot handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "the bot handled 70%, so cut 70%" doesn't hold.
 
 Three things this tool shows:
 
-1. **AI never takes you to zero people.** AI doesn't resolve every contact it tries. Whatever it misses lands on a human. So there's always a floor - and adding more AI can't get you below it.
-2. **That floor is bigger than the headline number.** Since AI cleared the easy ones, the contacts left are the hard, slow ones. Plan for the leftover volume at your *normal* handle time and you'll under-hire. Fewer tickets, but each takes longer.
-3. **There's no obvious "right amount" of AI.** Cost per contact usually lands cheapest near one edge - low AI or high AI - not in the middle. Real vendor pricing can shift that, so treat the chart as a pressure test, not a procurement answer.
+1. **You never get to zero people.** The bot doesn't resolve every contact it tries - whatever it misses lands on a human. So there's always a floor, and routing more contacts to the bot can't push you below it.
+2. **That floor is bigger than the headline number.** The bot clears the easy ones, so the contacts left are the hard, slow ones. Plan for the leftover volume at your *normal* handle time and you'll under-hire. Fewer tickets, but each takes longer.
+3. **There's no obvious "right amount" of automation.** Cost per contact usually lands cheapest at one extreme (barely any automation, or almost all of it), not in the middle. Real vendor pricing can shift that, so treat the chart as a pressure test, not a procurement answer.
 
-Move the AI coverage slider and watch the tradeoff: fewer human tickets, harder remaining tickets, changing headcount, and blended cost per contact. It's not a forecast - it's a sanity check for the lazy version of AI capacity planning.
+Move the coverage slider and watch the tradeoff: fewer human tickets, harder remaining tickets, changing headcount, and blended cost per contact. Treat it as a sanity check for the lazy version of capacity planning, not a forecast.
 
 ## The model
 
-One assumption drives everything: AI picks off the easier contacts first, so the contacts that reach a human are the harder leftovers.
+One assumption drives everything: the bot picks off the easier contacts first, so the contacts that reach a human are the harder leftovers.
 
 From there it works out four things:
 
-1. How many contacts AI attempts.
+1. How many contacts the bot attempts.
 2. How many it resolves.
 3. How many fall back to a human.
 4. How long that leftover human work takes.
@@ -59,7 +59,7 @@ For anyone checking the math:
 - headcount = human hours ÷ productive hours per agent
 - blended cost/contact = (AI cost + human labor cost) ÷ total contacts
 
-The one opinionated piece is the handle-time curve: because AI removes the easier contacts first, the average handle time of the contacts left for humans rises as AI coverage goes up.
+The one opinionated piece is the handle-time curve: because the bot removes the easier contacts first, the average handle time of the contacts left for humans rises as coverage goes up.
 
 <details>
 <summary>Full formulas, exact</summary>
