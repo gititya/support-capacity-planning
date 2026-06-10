@@ -19,6 +19,11 @@ But here's what the 2026 data actually says:
 > "55% of administrative and customer support leaders plan to increase permanent headcount in the second half of 2026." ... admin job postings "up 9% from 2024."
 > - [Robert Half, 2026](https://www.roberthalf.com/us/en/insights/research/data-reveals-which-administrative-and-customer-support-roles-are-in-highest-demand)
 
+And the reason the survivors are slower - the exact mechanism this prototype is built around:
+
+> "As AI absorbs routine interactions, the cases that reach a human are no longer average. They're the unresolved edge cases... the exceptions or the moments where the model lacked context or confidence." ... "Automation reduces repetitive labor while heightening accountability."
+> - [Ryan Wang (Assembled), Forbes, Apr 2 2026](https://www.forbes.com/councils/forbestechcouncil/2026/04/02/why-the-impact-of-ai-on-customer-support-isnt-what-leaders-expected/)
+
 The part the headcount-cut math misses: if AI handles 70% of contacts, you can't just staff the remaining 30% at your old numbers. Once the easy contacts are gone, it stops being a volume game and becomes an AHT game - the contacts that survive are the slow, hard ones. Staffing for "30% of volume" silently understaffs.
 
 So my answer is:
