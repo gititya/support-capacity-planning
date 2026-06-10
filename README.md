@@ -30,9 +30,9 @@ The bot handles the easy stuff first, so the work left for humans gets harder. E
 
 Three things this tool shows:
 
-1. **You never get to zero people.** The bot doesn't resolve every contact it tries - whatever it misses lands on a human. So there's always a floor, and routing more contacts to the bot can't push you below it.
-2. **That floor is bigger than the headline number.** The bot clears the easy ones, so the contacts left are the hard, slow ones. Plan for the leftover volume at your *normal* handle time and you'll under-hire. Fewer tickets, but each takes longer.
-3. **There's no obvious "right amount" of automation.** Cost per contact usually lands cheapest at one extreme (barely any automation, or almost all of it), not in the middle. Real vendor pricing can shift that, so treat the chart as a pressure test, not a procurement answer.
+1. **You never get to zero people.** The bot doesn't resolve every contact it tries, and whatever it misses lands on a human. That leaves a floor no amount of extra automation can push below.
+2. That floor also needs **more people than the headline math suggests**. The bot skims the easy contacts first, so the ones left for humans are the slow, hard ones. Size that leftover at your average handle time and you'll under-hire - fewer tickets, but each takes longer.
+3. On cost, there's no sweet spot in the middle. Cost per contact usually bottoms out at one extreme, barely any automation or almost all of it. Vendor pricing can move that, so read the chart as a pressure test, not a procurement answer.
 
 Move the coverage slider and watch the tradeoff: fewer human tickets, harder remaining tickets, changing headcount, and blended cost per contact. Treat it as a sanity check for the lazy version of capacity planning, not a forecast.
 
@@ -102,9 +102,9 @@ python skills/ai-capacity-planner/scripts/ai_capacity_modeler.py --sample
 
 ## Where the logic comes from
 
-Four standard methods, named, with the plain-English version after each:
+Four standard methods, named, in plain terms:
 
-1. **[Workload-to-FTE staffing](https://www.indeed.com/hire/c/info/full-time-equivalent)** - the WFM way of turning a pile of work-hours into a number of people. *Plain version:* add up the hours the leftover tickets will take, divide by the hours one agent actually works in a week.
-2. **[Truncated mean](https://en.wikipedia.org/wiki/Truncated_mean)** (a.k.a. conditional tail expectation) - the average of what's left after you cut off one end of a range. *Plain version:* AI takes the easy tickets, so you average the handle time of the *hard ones that remain* - which is higher than the all-tickets average.
-3. **[Cost per contact](https://www.calabrio.com/glossary/cost-per-call/)** - the standard contact-center efficiency metric. *Plain version:* add AI cost and human labor cost, divide by total contacts. "Blended" just means both in one number.
-4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** - the queue-sizing math real WFM uses for live channels. *Plain version:* this tool stops *before* that. If the leftover work is phone or chat, you still need Erlang-C on top - this only estimates the work left after AI.
+1. **[Workload-to-FTE staffing](https://www.indeed.com/hire/c/info/full-time-equivalent)** - the WFM way of turning a pile of work-hours into a headcount. Add up the hours the leftover tickets will take, then divide by the hours one agent actually works in a week.
+2. **[Truncated mean](https://en.wikipedia.org/wiki/Truncated_mean)**, a.k.a. conditional tail expectation: the average of a range once you've lopped off one end. The bot takes the easy tickets, so what you're averaging is the handle time of the hard ones left behind, which runs higher than the all-tickets average.
+3. **[Cost per contact](https://www.calabrio.com/glossary/cost-per-call/)** - the standard contact-center efficiency metric. Add bot cost to human labor cost and divide by total contacts; "blended" just means both sit in one number.
+4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** is the queue-sizing math real WFM uses for live channels, and this tool deliberately stops before it. If the leftover work is phone or chat you still need Erlang-C on top; this only sizes the work left after the bot.
