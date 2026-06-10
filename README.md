@@ -1,50 +1,80 @@
-# capacity-planning-support
+# Capacity Planning - Support
 
-an AI-first capacity planner for customer support. one screen, one lever.
+My take on capacity planning for customer support. Use your own levers, sweep AI coverage, and watch headcount and blended cost per contact move - a simulation of something that's probably been sitting at the back of your head. You might be surprised.
 
-you sweep AI coverage and watch two things move, headcount and blended cost per contact, plus a planning lens that reads why the leftover work is slow. that's it. no scheduling, no rostering, no saved scenarios. on purpose.
+Open `index.html` in a browser. That's the whole thing.
 
-it's a proof-of-work artifact for a WFM / CX context, not a product. the point is the model, not the polish.
+## The one idea
 
-## the one idea
+2025 was "customer support is dead because of LLMs," or "AI does 80% of tickets so cut 80% of the team." No citations needed - everyone heard it.
 
-everyone says "AI does 80% of tickets so cut 80% of the team." that's wrong in two ways i can prove with arithmetic, and the screen makes you feel both:
+But here's what the 2026 data actually says:
 
-1. **headcount drops to a floor, not zero.** effective automation is `coverage x success`. AI success isn't 100%, so `volume x (1 - success)` always bounces to a human. the floor is set by the success rate, not coverage. buying more coverage can't remove it.
-2. **the floor costs more than naive math says.** AI eats the easy tickets first, so the survivors are the hard ones. the human average handle time drifts up on its own as coverage rises. naive math multiplies the leftover volume by the *baseline* AHT, honest math multiplies by the *residual* AHT, which is bigger. on the defaults that gap is 13 people (44 vs 31).
+> "Just 31% have implemented, or are planning, frontline workforce reductions through layoffs... large-scale layoffs remain the exception rather than the norm, underscoring a broader shift toward workforce redesign rather than elimination." (85% are expanding agent responsibilities.)
+> - [Gartner, Apr 28 2026](https://www.gartner.com/en/newsroom/press-releases/2026-04-28-gartner-survey-finds-eighty-five-percent-of-service-and-support-leaders-are-expanding-human-agent-responsibilities-despite-expectations-of-mass-ai-layoffs)
 
-then the cost question nobody asks: does pushing coverage higher actually save money per contact? answer, there's no sweet spot. blended cost is concave in coverage, so it's monotone or worst-in-the-middle, never best-in-the-middle. the chart shows which regime your inputs land in. hand someone the sliders and dare them to find the optimum, there isn't one in the clean model.
+> "Over 50% of customer service organizations will double their technology spend [by 2028], without an equivalent reduction in talent." ... "Technology spend is rising rapidly, yet talent needs are evolving - not disappearing."
+> - [Gartner, Mar 31 2026](https://www.gartner.com/en/newsroom/press-releases/2026-03-31-gartner-predicts-over-50-percent-of-customer-service-organizations-will-double-their-technology-spend-by-2028)
 
-## what's in here
+> "55% of administrative and customer support leaders plan to increase permanent headcount in the second half of 2026." ... admin job postings "up 9% from 2024."
+> - [Robert Half, 2026](https://www.roberthalf.com/us/en/insights/research/data-reveals-which-administrative-and-customer-support-roles-are-in-highest-demand)
 
-- `index.html` — the whole prototype. single file, plain JS, no build, no framework, no typescript. charts are Chart.js + the annotation plugin off a CDN. open it in a browser, done.
-- `skills/ai-capacity-planner/` — the same model packaged as an agent skill (SKILL.md + a deterministic stdlib-only python port + references). it's positioned as the AI-first layer that runs *before* classical Erlang-C capacity planning.
-- `wfm-capacity-the full screen + model.md` — the model, the derivation, the hand-checked numbers. source of truth for the math.
-- `wfm-capacity-planner-HANDOFF.md` — the design conversation, decisions locked and rejected.
+The part the headcount-cut math misses: if AI handles 70% of contacts, you can't just staff the remaining 30% at your old numbers. Once the easy contacts are gone, it stops being a volume game and becomes an AHT game - the contacts that survive are the slow, hard ones. Staffing for "30% of volume" silently understaffs.
 
-## run it
+So my answer is:
 
-open `index.html`. needs internet the first time for the chart CDN. that's the only dependency.
+1. **Headcount drops to a floor, not zero.** Effective automation is `coverage x success`. AI success isn't 100%, so `volume x (1 - success)` always bounces to a human. The floor is set by the resolution rate, not coverage. Buying more coverage can't remove it.
+2. **The floor costs more than naive math says.** AI eats the easy tickets first, so the survivors are the hard ones. The human average handle time drifts up on its own as coverage rises. Naive math multiplies the leftover volume by the baseline AHT; honest math multiplies by the residual AHT, which is bigger. On the defaults that gap is 13 people (44 vs 31).
 
-skill:
+Then the cost question nobody asks: does pushing coverage higher actually save money per contact? Answer: there's no sweet spot. Blended cost is concave in coverage, so it's monotone or worst-in-the-middle, never best-in-the-middle. The chart names which regime your inputs land in. Hand someone the sliders and dare them to find the optimum - there isn't one in the clean model.
+
+## The model
+
+The math is named methods, not vibes. Every line is reproducible:
 
 ```
+a (effective automation) = coverage x success
+human tickets            = volume x (1 - a)
+baseline AHT             = (easy + hard) / 2                  <- naive math uses this
+residual AHT             = easy + (hard - easy) x (1 + a)/2   <- conditional mean over the surviving slice [a,1]
+human hours              = human tickets x residual AHT / 60
+headcount                = human hours / productive hrs per agent
+attempts                 = volume x coverage
+resolutions              = volume x a
+AI cost                  = attempts x fee (per-attempt)  OR  resolutions x fee (per-resolution)
+human cost               = human hours x human $/hr
+blended $/contact        = (AI cost + human cost) / volume
+```
+
+Difficulty is a straight-line ramp from easy to hard, and AI removes the easy slice first. Two AHT endpoints alone don't fix the residual average - the shape does, and that's the stated shape.
+
+Inputs: weekly volume, % sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
+
+## What this is not
+
+1. NOT a forecast, and not a replacement for WFM planning.
+2. NOT a costing model.
+3. NOT Erlang-C / queue sizing. It has no service-level target and no arrival randomness. It hands the residual off to that (see below).
+4. NOT a scheduling or rostering platform. One screen, one lever - no shifts, no saved scenarios, no headcount-by-interval.
+
+## What's in here
+
+1. `index.html` - the whole prototype. Single file, plain JS, no build, no framework, no TypeScript. Charts are Chart.js + the annotation plugin off a CDN. Open it in a browser, done.
+2. `skills/ai-capacity-planner/` - the same model packaged as an agent skill (SKILL.md + a deterministic stdlib-only Python port + references). Positioned as the layer that runs *before* classical Erlang-C capacity planning.
+
+### Want to run the skill?
+
+```bash
 python skills/ai-capacity-planner/scripts/ai_capacity_modeler.py --sample
 ```
 
-## the methods
+## Methods this is derived from
 
-the math is named methods, not vibes:
+1. **Deterministic workload staffing** (hours -> FTE). `headcount = human hours / productive hrs per agent`. The Erlang-C-free side of WFM, the one used for deferred / async work.
+2. **Truncated-mean selection** for the rising AHT. Lay difficulty on [0,1], let AI remove the bottom slice, and take the conditional mean over the surviving tail. Cream-skimming, basically.
+3. **Blended unit-cost accounting** for $/contact.
+4. **Concavity / second derivative.** Within the clean continuous model, blended cost has no interior minimum - it's monotone or most expensive in the middle.
 
-- **deterministic workload staffing** (hours -> FTE). `headcount = human hours / productive hrs per agent`. this is the Erlang-C-free side of WFM, the one used for deferred / async work.
-- **truncated-mean selection** for the rising AHT. lay difficulty on [0,1], AI removes the bottom slice, residual AHT is the conditional mean over the surviving tail. cream-skimming, basically.
-- **concavity / second-derivative** for the no-sweet-spot proof. `d2/da2 = -(W/60)·aht'(a) <= 0`, so concave, so no interior minimum. for any prices.
-- **blended unit-cost accounting** for $/contact.
+## Why no Erlang-C
 
-**why no Erlang-C.** Erlang-C sizes a real-time queue against a service-level target (answer 80% in 20s, random arrivals, shared pool). this model doesn't target a service level and doesn't model arrival randomness, it sizes labor-hours. so it stops short of Erlang-C on purpose and hands the residual off to it. the two are complementary, not the same method. the honest seam: if the leftover tickets are synchronous (chat, phone), you need Erlang-C on top and this FTE is an understatement, because Erlang-C wants occupancy headroom for randomness.
-
-## where it came from
-
-the model is the union of three things, a published staffing model (the headcount mechanics), a cost lens (blended AI vs human per contact), and my own mechanism (residual AHT rises as AI takes the easy work). the union is the whole point, none of the three alone is defensible.
-
-it got hardened the same way [MARS](https://github.com/gititya/MARS) hardens an idea, two models pressure-testing each other as peers until the overclaims fell out. the first draft had a cost sweet spot. the debate killed it, the concavity proof is what's left. that's the kind of result i trust, the one that survived getting argued with.
+Erlang-C sizes a real-time queue against a service-level target (answer 80% in 20s, random arrivals, shared pool). This model doesn't target a service level and doesn't model arrival randomness - it sizes labor-hours. So it stops short of Erlang-C on purpose and hands the residual off to it. The two are complementary, not the same method. The honest seam: if the leftover tickets are synchronous (chat, phone), you need Erlang-C on top, and this FTE is an understatement, because Erlang-C wants occupancy headroom for randomness.

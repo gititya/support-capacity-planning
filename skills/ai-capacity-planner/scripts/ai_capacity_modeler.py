@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""ai_capacity_modeler.py — the AI-first capacity model.
+"""ai_capacity_modeler.py — the AI capacity model.
 
 Deterministic, stdlib-only. No LLM calls. Mirrors the prototype's
 derive() / sweep() / classifyRegime() exactly.
 
 What it does that classical Erlang-C capacity planning does NOT:
-  1. Treats AI *coverage* as the swept lever.
-  2. Models the headcount FLOOR set by (1 - success): even at 100%
-     coverage, volume x (1 - success) tickets always reach a human.
-  3. Models RESIDUAL AHT rising as AI removes the easy tickets first,
+  1. Treats AI attempts as the swept lever.
+  2. Models the minimum human team set by (1 - success): even at 100%
+     AI attempts, volume x (1 - success) tickets always reach a human.
+  3. Models remaining-contact handle time rising as AI removes the easy tickets first,
      so the surviving human pile gets harder on its own.
   4. Emits a BLENDED AI-vs-human cost-per-contact curve and names its
-     regime — and proves there is no interior cost sweet spot.
+     regime — and proves there is no interior cost middle optimum.
 
-It does NOT do queue/service-level sizing. Once you have the residual
+It does NOT do queue/service-level sizing. Once you have the remaining
 human workload, hand it to an Erlang-C tool (e.g. the `capacity-planner`
 skill) for P90/SLA staffing. This sizes the *labor*; that sizes the *queue*.
 
@@ -29,8 +29,8 @@ import sys
 
 SAMPLE = {
     "volume": 10000,        # weekly contact volume
-    "coverage": 0.70,       # AI coverage (the swept lever), 0..1
-    "success": 0.85,        # AI success rate -> sets the floor, 0..1
+    "coverage": 0.70,       # AI attempts (the swept lever), 0..1
+    "success": 0.85,        # AI resolution rate -> sets the minimum human team, 0..1
     "easy_aht": 4.0,        # easy-ticket AHT, minutes
     "hard_aht": 25.0,       # hard-ticket AHT, minutes
     "productive_hrs": 32.0, # productive hrs / agent / week
@@ -41,10 +41,10 @@ SAMPLE = {
 
 
 def derive(coverage, p):
-    """Every line traces to the model doc. coverage in [0,1]."""
+    """Every line traces to the model doc. AI attempts in [0,1]."""
     a = coverage * p["success"]                                   # effective automation
     human_tickets = p["volume"] * (1 - a)
-    base_aht = (p["easy_aht"] + p["hard_aht"]) / 2                # naive math uses this
+    base_aht = (p["easy_aht"] + p["hard_aht"]) / 2                # flat-average math uses this
     res_aht = p["easy_aht"] + (p["hard_aht"] - p["easy_aht"]) * (1 + a) / 2  # avg over slice [a,1]
     human_hours = human_tickets * res_aht / 60
     headcount = human_hours / p["productive_hrs"]
@@ -83,8 +83,8 @@ def sweep(p, n=101):
 
 
 def classify_regime(rows):
-    """Blended cost is concave in coverage, so its only interior extremum
-    is a MAXIMUM — an interior minimum (a 'sweet spot') is impossible.
+    """Blended cost is concave in AI attempts, so its only interior extremum
+    is a MAXIMUM — an interior minimum (a 'middle optimum') is impossible.
     The minimum is therefore always at an endpoint."""
     cost = [r["blended"] for r in rows]
     start, end = cost[0], cost[-1]
@@ -94,16 +94,16 @@ def classify_regime(rows):
     worst_cov = round(rows[max_idx]["coverage"] * 100)
     if interior_max:
         return {"kind": "worst-in-middle",
-                "verdict": f"WORST at {worst_cov}% coverage — cheapest at {cheap_end}",
+                "verdict": f"WORST at {worst_cov}% AI attempts — cheapest at {cheap_end}",
                 "worst_coverage_pct": worst_cov}
     if cheap_end == "MAX":
-        return {"kind": "monotone-down", "verdict": "Cheapest at MAX coverage", "worst_coverage_pct": None}
+        return {"kind": "monotone-down", "verdict": "Cheapest at MAX AI attempts", "worst_coverage_pct": None}
     return {"kind": "monotone-up", "verdict": "Cheapest at ZERO coverage (AI never pays)", "worst_coverage_pct": None}
 
 
 def analyze(p):
     now = derive(p["coverage"], p)
-    floor = derive(1.0, p)                     # headcount at 100% coverage = the floor
+    floor = derive(1.0, p)                     # headcount at 100% AI attempts = the minimum human team
     rows = sweep(p)
     regime = classify_regime(rows)
     fully_loaded = p["human_rate"] * p["productive_hrs"]
@@ -123,38 +123,38 @@ def analyze(p):
 def render_markdown(r):
     p, now, reg = r["inputs"], r["now"], r["regime"]
     L = []
-    L.append("# AI-First Capacity — Scenario Result\n")
-    L.append(f"Volume **{p['volume']:,}**/wk · coverage **{p['coverage']*100:.0f}%** · "
-             f"success **{p['success']*100:.0f}%** · AHT **{p['easy_aht']:g}→{p['hard_aht']:g} min** · "
+    L.append("# AI Capacity — Scenario Result\n")
+    L.append(f"Volume **{p['volume']:,}**/wk · AI attempts **{p['coverage']*100:.0f}%** · "
+             f"resolution rate **{p['success']*100:.0f}%** · AHT **{p['easy_aht']:g}→{p['hard_aht']:g} min** · "
              f"billing **{p['billing_mode']}** @ ${p['ai_fee']:.2f}\n")
 
-    L.append("## Moment 1 — Headcount floor (the hero)")
-    L.append(f"- Effective automation `a = coverage x success` = **{now['a']*100:.1f}%**")
-    L.append(f"- Residual AHT (survivors get harder) = **{now['res_aht']:.2f} min** "
-             f"(vs naive baseline {now['base_aht']:.2f} min)")
-    L.append(f"- Headcount at this coverage = **{now['headcount']:.0f} people**")
-    L.append(f"- **Floor = {r['floor_headcount']:.0f} people** at 100% coverage — set by "
-             f"`(1 - success)`. Pushing coverage higher cannot remove it.\n")
+    L.append("## Moment 1 — Agents needed after AI (the hero)")
+    L.append(f"- Effective automation `a = AI attempts x AI resolution rate` = **{now['a']*100:.1f}%**")
+    L.append(f"- Remaining-contact handle time (survivors get harder) = **{now['res_aht']:.2f} min** "
+             f"(vs flat-average baseline {now['base_aht']:.2f} min)")
+    L.append(f"- Agents needed at this setting = **{now['headcount']:.0f} people**")
+    L.append(f"- **Minimum human team = {r['floor_headcount']:.0f} people** at 100% AI attempts — set by "
+             f"`(1 - AI resolution rate)`. Pushing AI attempts higher cannot remove it.\n")
 
-    L.append("## Moment 2 — No cost sweet spot")
-    L.append(f"- Blended cost / contact at this coverage = **${now['blended']:.2f}**")
+    L.append("## Moment 2 — No middle cost optimum")
+    L.append(f"- Blended cost / contact at this setting = **${now['blended']:.2f}**")
     L.append(f"- Regime: **{reg['verdict']}**")
-    L.append("- Blended cost is *concave* in coverage (`d2/da2 = -(W/60)·aht'(a) <= 0`), so it is "
+    L.append("- Blended cost is *concave* in AI attempts (`d2/da2 = -(W/60)·aht'(a) <= 0`), so it is "
              "monotone or worst-in-the-middle — **never** best-in-the-middle. There is no interior optimum.\n")
 
-    L.append("## Moment 3 — Naive vs model")
-    L.append(f"- Naive math (baseline AHT) says: **{now['naive_headcount']:.0f} people**")
-    L.append(f"- This model (residual AHT) says: **{now['headcount']:.0f} people**")
+    L.append("## Moment 3 — Flat-average vs difficulty-aware")
+    L.append(f"- Flat-average math (baseline AHT) says: **{now['naive_headcount']:.0f} people**")
+    L.append(f"- Difficulty-aware plan says: **{now['headcount']:.0f} people**")
     sign = "under-staff by" if r["naive_vs_model_gap"] > 0 else "gap"
     L.append(f"- You would **{sign} {abs(r['naive_vs_model_gap']):.0f} people**\n")
 
     L.append("## Budget readout")
     L.append(f"- Fully-loaded $/agent/wk = **${r['fully_loaded_per_agent_wk']:,.0f}**")
-    L.append(f"- Model staffing = **${r['model_staffing_per_wk']/1000:.1f}k / wk**\n")
+    L.append(f"- Difficulty-aware staffing = **${r['model_staffing_per_wk']/1000:.1f}k / wk**\n")
 
     L.append("## Hand-off")
-    L.append("This sized the residual human **labor** (hours → FTE via productive hours). For "
-             "queue-aware **service-level** sizing of that residual — P90 demand, shrinkage, P(SLA "
+    L.append("This sized the remaining human **labor** (hours → FTE via productive hours). For "
+             "queue-aware **service-level** sizing of that remaining work — P90 demand, shrinkage, P(SLA "
              "breach) — feed `human_tickets` and `res_aht` into an Erlang-C tool (the `capacity-planner` "
              "skill). This skill answers *how the AI layer reshapes the work*; Erlang-C answers *how to "
              "staff the queue that's left*.")
@@ -175,7 +175,7 @@ def load_inputs(path):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="AI-first capacity model (deterministic, stdlib-only).")
+    ap = argparse.ArgumentParser(description="AI capacity model (deterministic, stdlib-only).")
     ap.add_argument("--input", help="path to scenario JSON (keys: " + ", ".join(SAMPLE) + ")")
     ap.add_argument("--output", choices=["markdown", "json"], default="markdown")
     ap.add_argument("--sample", action="store_true", help="run the built-in default scenario")

@@ -1,6 +1,6 @@
 ---
 name: ai-capacity-planner
-description: "Use when an ops leader (Director of CX, Head of Support, VP Ops) is sizing a support team in an AI-first contact center — where an AI agent resolves part of the volume — and needs to know how many humans are still required, what the residual work costs, and whether pushing AI coverage higher actually saves money. Models AI coverage as the swept lever, the headcount FLOOR set by (1 - AI success), residual handle-time rising as AI removes the easy tickets first, and a blended AI-vs-human cost-per-contact curve with its regime. Run before committing an AI-deflection headcount plan, or when leadership claims 'AI does 80% so we can cut 80% of staff.' This is NOT classical queue sizing — for P90/SLA/shrinkage staffing of the residual, hand off to capacity-planner (Erlang-C)."
+description: "Use when an ops leader (Director of CX, Head of Support, VP Ops) is sizing a support team in a contact center where an AI agent resolves part of the volume, and needs to know how many humans are still required, what the residual work costs, and whether pushing AI coverage higher actually saves money. Models AI coverage as the swept lever, the headcount FLOOR set by (1 - AI success), residual handle-time rising as AI removes the easy tickets first, and a blended AI-vs-human cost-per-contact curve with its regime. Run before committing an AI-deflection headcount plan, or when leadership claims 'AI does 80% so we can cut 80% of staff.' This is NOT classical queue sizing — for P90/SLA/shrinkage staffing of the residual, hand off to capacity-planner (Erlang-C)."
 version: 0.1.0
 author: gititya
 license: MIT
@@ -10,7 +10,7 @@ compatible_tools: [claude-code, codex-cli, cursor, gemini-cli]
 
 # ai-capacity-planner
 
-The **AI-first delta** on top of classical capacity planning. Classical
+The **delta** on top of classical capacity planning. Classical
 WFM (Erlang-C) sizes a queue assuming a fixed handle time and no AI. This
 skill models what an AI agent does to that queue **before** you size it:
 it removes the easy tickets, leaves a harder residual, sets a headcount

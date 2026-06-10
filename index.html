@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI-First Capacity Planner</title>
+<title>Capacity Planning - Support</title>
 <!-- Chart.js v4 + annotation plugin, via CDN (no install / no build) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
@@ -16,9 +16,9 @@
     --ink: #e7eaf0;
     --ink-dim: #9aa3b2;
     --ink-faint: #6b7280;
-    --hero: #5b9dff;
+    --human: #5b9dff;
     --cost: #ffb454;
-    --naive: #4b5263;
+    --naive: #5a6273;
     --floor: #ff5d6c;
     --accent: #7c5cff;
     --good: #38d39f;
@@ -31,224 +31,187 @@
     font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 22px 40px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 22px 40px; }
+
+  /* ---- Hero ---- */
   header { margin-bottom: 18px; }
-  header h1 { font-size: 19px; margin: 0 0 3px; letter-spacing: .2px; }
-  header p { margin: 0; color: var(--ink-dim); font-size: 13px; font-style: italic; }
+  header h1 { font-size: 30px; line-height: 1.12; margin: 0 0 6px; letter-spacing: -.4px; font-weight: 800; }
+  header p { margin: 0; color: var(--ink-dim); font-size: 14px; max-width: 720px; }
 
-  .grid {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 16px;
-    align-items: start;
+  /* ---- Results strip (the answer) ---- */
+  .results { margin-bottom: 18px; }
+  .results-eyebrow {
+    display: flex; align-items: center; gap: 7px; margin: 0 2px 9px;
+    color: var(--ink-faint); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
   }
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 16px;
+  .results-eyebrow .live { color: var(--good); }
+  .results-eyebrow .live::before { content: "\25CF"; font-size: 8px; margin-right: 4px; vertical-align: middle; }
+  .kpis { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
   }
-  .panel h2 {
-    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--ink-faint); margin: 0 0 14px; font-weight: 700;
+  .kpi.primary { border-color: rgba(91,157,255,.45); background: linear-gradient(135deg, rgba(91,157,255,.12), rgba(91,157,255,.03)); }
+  .kpi .label { color: var(--ink-faint); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+  .kpi .num { font-size: 34px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+  .kpi.primary .num { color: var(--human); }
+  .kpi .unit { font-size: 14px; font-weight: 600; color: var(--ink-dim); margin-left: 4px; }
+  .kpi .note { color: var(--ink-faint); font-size: 11px; margin-top: 5px; }
+  .resolves { color: var(--ink-dim); font-size: 12.5px; margin: 10px 2px 0; }
+  .resolves b { color: var(--ink); font-weight: 700; }
+  .delta {
+    margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
+    background: rgba(255,93,108,.10); border: 1px solid rgba(255,93,108,.30); color: #ff8d98;
   }
+  .delta.hidden { display: none; }
 
-  /* ---- Levers ---- */
-  .lever { margin-bottom: 13px; }
-  .lever .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+  /* ---- Grid ---- */
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .panel h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; font-weight: 700; }
+
+  /* ---- Inputs ---- */
+  .group-label {
+    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint);
+    font-weight: 700; margin: 16px 0 9px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+  }
+  .group-label:first-of-type { margin-top: 0; }
+  .lever { margin-bottom: 11px; }
+  .lever .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 8px; }
   .lever label { color: var(--ink-dim); font-size: 12.5px; }
-  .lever .val { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; }
-  .lever .val.hero { color: var(--hero); }
+  .lever .val { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; white-space: nowrap; }
+  .lever .val.swept { color: var(--human); }
   .lever input[type="number"] {
     width: 100%; background: var(--panel-2); border: 1px solid var(--line);
-    color: var(--ink); border-radius: 7px; padding: 6px 8px; font: inherit;
-    font-variant-numeric: tabular-nums;
+    color: var(--ink); border-radius: 7px; padding: 6px 8px; font: inherit; font-variant-numeric: tabular-nums;
   }
-  .lever input[type="range"] { width: 100%; accent-color: var(--hero); }
-  .lever.success input[type="range"] { accent-color: var(--good); }
-  .sub { color: var(--ink-faint); font-size: 11px; margin-top: 2px; }
+  .lever input[type="range"] { width: 100%; accent-color: var(--human); }
+  .lever.swept-lever input[type="range"] { accent-color: var(--human); }
+  .tip { border-bottom: 1px dotted var(--ink-faint); cursor: help; }
+  .sub { color: var(--ink-faint); font-size: 11px; margin-top: 3px; }
+  .err { color: var(--floor); font-size: 11.5px; margin-top: 4px; min-height: 0; }
 
-  .radio-group { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+  .radio-group { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
   .radio-group label { display: flex; align-items: center; gap: 8px; color: var(--ink-dim); font-size: 12.5px; cursor: pointer; }
   .radio-group input { accent-color: var(--accent); }
 
-  hr.div { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
-
-  /* ---- Readouts ---- */
-  .readout { margin-bottom: 11px; }
-  .readout .k { color: var(--ink-faint); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
-  .readout .v { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .counter {
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px;
-    padding: 12px; margin: 6px 0 12px;
-  }
-  .counter .line { display: flex; justify-content: space-between; align-items: baseline; padding: 2px 0; }
-  .counter .line span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
-  .counter .naive span:last-child { color: var(--naive); color: #8b93a3; }
-  .counter .model span:last-child { color: var(--hero); }
-  .counter .gap {
-    margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--line);
-    color: var(--floor); font-weight: 600;
-  }
-  .counter .gap.zero { color: var(--ink-faint); }
-
   /* ---- Charts ---- */
   .charts { display: flex; flex-direction: column; gap: 16px; }
-  .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
-  .chart-head .title { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; }
-  .chart-head .badge {
-    font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
-    color: var(--hero); background: rgba(91,157,255,.12); padding: 2px 8px; border-radius: 20px;
-  }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; }
+  .chart-head .title { font-size: 13px; font-weight: 700; color: var(--ink); }
   .regime {
-    font-size: 12.5px; font-weight: 600; color: var(--cost);
-    background: rgba(255,180,84,.1); border: 1px solid rgba(255,180,84,.25);
-    padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; color: var(--cost);
+    background: rgba(255,180,84,.1); border: 1px solid rgba(255,180,84,.28);
+    padding: 3px 10px; border-radius: 20px; white-space: nowrap;
   }
-  .chart-box { position: relative; height: 230px; }
+  .cap { color: var(--ink-dim); font-size: 12px; line-height: 1.4; margin: 0 0 10px; }
+  .caveat { color: var(--ink-faint); font-size: 11px; line-height: 1.35; margin: 8px 0 0; }
+  .chart-box { position: relative; height: 228px; }
   .hero-box { height: 250px; }
-
-  /* ---- Planning lens ---- */
-  .lens { margin-top: 16px; }
-  .lens .opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .lens .opt {
-    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 13px; cursor: pointer; transition: border-color .15s, background .15s;
-  }
-  .lens .opt:hover { border-color: #3a4150; }
-  .lens .opt.sel { border-color: var(--accent); background: rgba(124,92,255,.08); }
-  .lens .opt .t { display: flex; align-items: center; gap: 8px; font-weight: 600; margin-bottom: 4px; }
-  .lens .opt .t input { accent-color: var(--accent); }
-  .lens .opt .d { color: var(--ink-dim); font-size: 12px; }
-  .lens .opt .arrow { color: var(--good); font-weight: 600; }
-  .lens .foot { color: var(--ink-faint); font-size: 11.5px; font-style: italic; margin-top: 10px; }
 
   @media (max-width: 860px) {
     .grid { grid-template-columns: 1fr; }
-    .lens .opts { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>AI-First Capacity Planner</h1>
-    <p>"More automation isn't always fewer people — and it has no cost sweet spot."</p>
+    <h1>More AI agents &ne; fewer humans.</h1>
+    <p>AI clears the easy contacts first. What&rsquo;s left stops being a volume game and becomes an AHT game - you can&rsquo;t staff the leftover share at your old average handle time.</p>
   </header>
 
-  <div class="grid">
-    <!-- ============ LEFT: LEVERS + READOUTS ============ -->
-    <div class="panel">
-      <h2>Levers</h2>
+  <!-- ============ RESULTS STRIP (the answer) ============ -->
+  <section class="results" aria-live="polite">
+    <div class="results-eyebrow"><span class="live">Live result</span> - recalculates as you change the numbers below</div>
+    <div class="kpis">
+      <div class="kpi primary">
+        <div class="label">Humans you still need</div>
+        <div class="num"><span id="kpi-humans"></span><span class="unit">humans</span></div>
+      </div>
+      <div class="kpi">
+        <div class="label">Blended cost per contact</div>
+        <div class="num" id="kpi-cost"></div>
+        <div class="note">AI fees + human labor, over all contacts</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Weekly human cost</div>
+        <div class="num" id="kpi-weekly"></div>
+      </div>
+    </div>
+    <p class="resolves" id="resolves"></p>
+    <div class="delta hidden" id="delta"></div>
+  </section>
 
+  <div class="grid">
+    <!-- ============ LEFT: INPUTS ============ -->
+    <div class="panel">
+      <h2>Your numbers</h2>
+
+      <div class="group-label">Volume</div>
       <div class="lever">
-        <div class="row"><label for="volume">Weekly volume</label><span class="val" id="volume-v"></span></div>
+        <div class="row"><label for="volume">Weekly contacts</label><span class="val" id="volume-v"></span></div>
         <input type="number" id="volume" value="10000" min="0" step="500">
       </div>
 
-      <div class="lever">
-        <div class="row"><label for="coverage">AI coverage <span style="color:var(--hero)">◀ swept lever</span></label><span class="val hero" id="coverage-v"></span></div>
+      <div class="group-label">AI agents</div>
+      <div class="lever swept-lever">
+        <div class="row"><label for="coverage">% sent to AI agents <span style="color:var(--human)">&#9664; swept</span></label><span class="val swept" id="coverage-v"></span></div>
         <input type="range" id="coverage" value="70" min="0" max="100" step="1">
       </div>
-
-      <div class="lever success">
-        <div class="row"><label for="success">AI success <span class="sub" style="display:inline">sets the floor</span></label><span class="val" id="success-v"></span></div>
+      <div class="lever">
+        <div class="row"><label for="success"><span class="tip" title="Of the contacts you send to AI agents, the share they fully resolve without a human. The rest bounce back to your team.">Resolution rate</span></label><span class="val" id="success-v"></span></div>
         <input type="range" id="success" value="85" min="1" max="100" step="1">
       </div>
 
+      <div class="group-label">Human handling</div>
       <div class="lever">
-        <div class="row"><label for="easy">Easy-ticket AHT</label><span class="val" id="easy-v"></span></div>
+        <div class="row"><label for="easy"><span class="tip" title="Human minutes to close your easiest contacts. AI agents clear these first, so few survive to a human.">Handle time - easy contact</span></label><span class="val" id="easy-v"></span></div>
         <input type="number" id="easy" value="4" min="0" step="0.5">
       </div>
-
       <div class="lever">
-        <div class="row"><label for="hard">Hard-ticket AHT</label><span class="val" id="hard-v"></span></div>
+        <div class="row"><label for="hard"><span class="tip" title="Human minutes to close your hardest contacts. As AI agents take more, the work that remains skews toward these.">Handle time - hard contact</span></label><span class="val" id="hard-v"></span></div>
         <input type="number" id="hard" value="25" min="0" step="0.5">
+        <p class="err" id="aht-err"></p>
       </div>
-
       <div class="lever">
-        <div class="row"><label for="prodhrs">Productive hrs / agent / wk</label><span class="val" id="prodhrs-v"></span></div>
+        <div class="row"><label for="prodhrs">Productive hrs / human / wk</label><span class="val" id="prodhrs-v"></span></div>
         <input type="number" id="prodhrs" value="32" min="1" step="1">
       </div>
-
       <div class="lever">
-        <div class="row"><label for="rate">Human $/hr</label><span class="val" id="rate-v"></span></div>
+        <div class="row"><label for="rate">Cost / human-hour</label><span class="val" id="rate-v"></span></div>
         <input type="number" id="rate" value="28" min="0" step="1">
         <div class="sub" id="loaded-sub"></div>
       </div>
 
+      <div class="group-label">AI cost</div>
       <div class="lever">
-        <div class="row"><label>AI billing mode</label></div>
         <div class="radio-group">
-          <label><input type="radio" name="mode" value="attempt"> per attempt <span class="sub" style="display:inline">(bills every conversation AI touches)</span></label>
-          <label><input type="radio" name="mode" value="resolution" checked> per resolution <span class="sub" style="display:inline">(common AI-agent pricing)</span></label>
+          <label><input type="radio" name="mode" value="attempt"> Bill per attempt <span class="sub" style="display:inline">(every contact AI touches)</span></label>
+          <label><input type="radio" name="mode" value="resolution" checked> Bill per resolution <span class="sub" style="display:inline">(only contacts AI resolves)</span></label>
         </div>
       </div>
-
       <div class="lever">
         <div class="row"><label for="fee">AI fee</label><span class="val" id="fee-v"></span></div>
         <input type="number" id="fee" value="0.90" min="0" step="0.05">
-      </div>
-
-      <hr class="div">
-
-      <div class="readout">
-        <div class="k">Effective automation rate</div>
-        <div class="v" id="auto-rate"></div>
-      </div>
-
-      <div class="counter">
-        <div class="line naive"><span>Naive math says</span><span id="naive-hc"></span></div>
-        <div class="line model"><span>This model says</span><span id="model-hc"></span></div>
-        <div class="gap" id="gap-line"></div>
-      </div>
-
-      <div class="readout">
-        <div class="k">Model staffing</div>
-        <div class="v" id="staff-cost"></div>
       </div>
     </div>
 
     <!-- ============ RIGHT: CHARTS ============ -->
     <div class="charts">
-      <!-- HERO: Headcount -->
       <div class="panel">
-        <div class="chart-head">
-          <span class="title">Output 1 — Headcount</span>
-          <span class="badge">Hero</span>
-        </div>
+        <div class="chart-head"><span class="title">Humans you still need, as AI takes more</span></div>
+        <p class="cap"><b style="color:var(--human)">Blue</b> = humans you actually need. <b style="color:#8b93a3">Grey</b> = the under-count if you assume every leftover contact is average. <b style="color:var(--floor)">Red</b> = the floor you can&rsquo;t cross, even at 100% AI. The blue-grey gap is the hidden shortfall.</p>
         <div class="chart-box hero-box"><canvas id="hcChart"></canvas></div>
       </div>
 
-      <!-- Blended cost -->
       <div class="panel">
-        <div class="chart-head">
-          <span class="title">Output 2 — Blended $ / contact</span>
-          <span class="regime" id="regime"></span>
-        </div>
+        <div class="chart-head"><span class="title">Cost per contact (AI + human, blended)</span><span class="regime" id="regime"></span></div>
+        <p class="cap" id="cost-cap"></p>
         <div class="chart-box"><canvas id="costChart"></canvas></div>
+        <p class="caveat">Clean-model result - real WFM can re-add a mid-range sweet spot via staffing steps, shift minimums, vendor tiers, fixed fees, or SLA penalties.</p>
       </div>
     </div>
-  </div>
-
-  <!-- ============ PLANNING LENS ============ -->
-  <div class="panel lens">
-    <h2>Planning lens — if residual AHT is high here, which is it? <span style="text-transform:none;letter-spacing:0;color:var(--ink-faint)">(not computed)</span></h2>
-    <div class="opts">
-      <div class="opt" data-lens="structural">
-        <div class="t"><input type="radio" name="lens"> Structural</div>
-        <div class="d">Work is genuinely harder <span class="arrow">→ accept it, staff for it</span></div>
-      </div>
-      <div class="opt" data-lens="capability">
-        <div class="t"><input type="radio" name="lens"> Capability</div>
-        <div class="d">Agents are struggling <span class="arrow">→ train, don't add heads</span></div>
-      </div>
-      <div class="opt" data-lens="load">
-        <div class="t"><input type="radio" name="lens"> Load</div>
-        <div class="d">Context-switching inflates it <span class="arrow">→ fix concurrency first</span></div>
-      </div>
-    </div>
-    <div class="foot">An interpretation lens, not a diagnosis — no input in this model proves which one is true.</div>
   </div>
 </div>
 
@@ -268,7 +231,7 @@ function readInputs() {
   };
 }
 
-// ---------- the model (every line traces to the spec) ----------
+// ---------- the model (unchanged - verified against the spec sample) ----------
 function derive(cov, p) {
   const a            = cov * p.success;                       // effective automation
   const humanTickets = p.volume * (1 - a);
@@ -287,7 +250,7 @@ function derive(cov, p) {
   return { a, humanTickets, baseAHT, resAHT, humanHours, headcount, naiveHC, blended };
 }
 
-// sweep coverage 0..1
+// sweep % sent to AI 0..1
 const N = 101;
 function sweep(p) {
   const xs = [], hc = [], naive = [], cost = [];
@@ -310,10 +273,16 @@ function classifyRegime(cost) {
   const interiorMax = maxIdx > 1 && maxIdx < cost.length - 2;
   const cheapEnd = end <= start ? 'max' : 'zero';
   if (interiorMax) {
-    return { text: 'Worst at ' + maxIdx + '% — cheapest at ' + (cheapEnd === 'max' ? 'MAX' : 'ZERO'), markX: maxIdx, kind: 'worst' };
+    return {
+      badge: 'Pricier in the middle',
+      detail: 'Cost peaks at mid-range AI. In this clean model it is always cheapest at one end, never the middle.',
+      markX: maxIdx, kind: 'worst',
+    };
   }
-  if (cheapEnd === 'max') return { text: 'Cheapest at MAX coverage', markX: 100, kind: 'min' };
-  return { text: 'Cheapest at ZERO coverage (AI never pays)', markX: 0, kind: 'min' };
+  if (cheapEnd === 'max') {
+    return { badge: 'Cheaper with more AI', detail: 'More AI keeps lowering cost per contact.', markX: 100, kind: 'min' };
+  }
+  return { badge: "AI doesn't pay here", detail: 'At this AI fee, more AI raises cost per contact - cheapest with no AI.', markX: 0, kind: 'min' };
 }
 
 // ---------- formatting ----------
@@ -325,17 +294,16 @@ const moneyK = n => '$' + (n / 1000).toLocaleString(undefined, { maximumFraction
 Chart.defaults.color = '#9aa3b2';
 Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
 Chart.defaults.font.size = 11;
-
 const gridClr = '#23272f';
 
-let hcChart, costChart;
+let hcChart, costChart, sweepData;
 
 function baseScales(yTitle) {
   return {
     x: {
-      title: { display: true, text: 'AI coverage', color: '#6b7280' },
+      title: { display: true, text: '% sent to AI agents', color: '#6b7280' },
       grid: { color: gridClr },
-      ticks: { callback: (v, i) => (i % 10 === 0 ? sweepData.xs[i] + '%' : '') , maxRotation: 0, autoSkip: false },
+      ticks: { callback: (v, i) => (i % 10 === 0 ? sweepData.xs[i] + '%' : ''), maxRotation: 0, autoSkip: false },
     },
     y: {
       title: { display: true, text: yTitle, color: '#6b7280' },
@@ -345,46 +313,27 @@ function baseScales(yTitle) {
   };
 }
 
-let sweepData;
-
 function buildCharts() {
-  const hcCtx = document.getElementById('hcChart');
-  const costCtx = document.getElementById('costChart');
-
-  hcChart = new Chart(hcCtx, {
+  hcChart = new Chart(document.getElementById('hcChart'), {
     type: 'line',
     data: {
       labels: sweepData.xs,
       datasets: [
-        {
-          label: 'This model (residual AHT)',
-          data: sweepData.hc,
-          borderColor: '#5b9dff',
-          backgroundColor: 'rgba(91,157,255,.10)',
-          fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5,
-        },
-        {
-          label: 'Naive math (baseline AHT)',
-          data: sweepData.naive,
-          borderColor: '#5a6273',
-          borderDash: [5, 4], fill: false, tension: .25, pointRadius: 0, borderWidth: 1.5,
-        },
+        { label: 'Reality', data: sweepData.hc, borderColor: '#5b9dff',
+          backgroundColor: 'rgba(91,157,255,.10)', fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 },
+        { label: 'Ignoring difficulty', data: sweepData.naive, borderColor: '#5a6273',
+          borderDash: [5, 4], fill: false, tension: .25, pointRadius: 0, borderWidth: 1.5 },
       ],
     },
-    options: chartOpts('people'),
+    options: chartOpts('humans'),
   });
 
-  costChart = new Chart(costCtx, {
+  costChart = new Chart(document.getElementById('costChart'), {
     type: 'line',
     data: {
       labels: sweepData.xs,
-      datasets: [{
-        label: 'Blended $ / contact',
-        data: sweepData.cost,
-        borderColor: '#ffb454',
-        backgroundColor: 'rgba(255,180,84,.10)',
-        fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5,
-      }],
+      datasets: [{ label: 'Cost per contact', data: sweepData.cost, borderColor: '#ffb454',
+        backgroundColor: 'rgba(255,180,84,.10)', fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 }],
     },
     options: chartOpts('$ / contact', true),
   });
@@ -398,11 +347,10 @@ function chartOpts(yTitle, isCost) {
       legend: { display: !isCost, position: 'bottom', labels: { boxWidth: 14, boxHeight: 2, padding: 14 } },
       tooltip: {
         callbacks: {
-          title: items => 'Coverage ' + items[0].label + '%',
-          label: ctx => {
-            if (isCost) return ' ' + ctx.dataset.label + ': ' + money(ctx.parsed.y);
-            return ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' people';
-          },
+          title: items => items[0].label + '% sent to AI agents',
+          label: ctx => isCost
+            ? ' ' + ctx.dataset.label + ': ' + money(ctx.parsed.y)
+            : ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' humans',
         },
       },
       annotation: { annotations: {} },
@@ -416,44 +364,50 @@ function update() {
   const p = readInputs();
   sweepData = sweep(p);
   const now = derive(p.coverage, p);
-  const floorHC = derive(1, p).headcount;           // headcount at 100% coverage = the floor
+  const floorHC = derive(1, p).headcount;       // humans still needed at 100% sent to AI
   const fullyLoaded = p.rate * p.prodHrs;
   const regime = classifyRegime(sweepData.cost);
   const coveragePct = Math.round(p.coverage * 100);
+  const successPct = Math.round(p.success * 100);
+  const gap = now.headcount - now.naiveHC;
+  const invertedAHT = p.hard < p.easy;
 
-  // --- lever value labels ---
+  // --- input value chips ---
   document.getElementById('volume-v').textContent   = fmt0(p.volume) + ' / wk';
   document.getElementById('coverage-v').textContent = coveragePct + '%';
-  document.getElementById('success-v').textContent  = Math.round(p.success * 100) + '%';
+  document.getElementById('success-v').textContent  = successPct + '%';
   document.getElementById('easy-v').textContent     = p.easy + ' min';
   document.getElementById('hard-v').textContent     = p.hard + ' min';
   document.getElementById('prodhrs-v').textContent  = p.prodHrs + ' hrs';
-  document.getElementById('rate-v').textContent     = '$' + p.rate;
-  document.getElementById('fee-v').textContent       = money(p.fee) + ' / ' + p.mode;
-  document.getElementById('loaded-sub').textContent  = '= ' + money(fullyLoaded) + ' / agent / wk (fully loaded)';
+  document.getElementById('rate-v').textContent     = '$' + p.rate + ' / hr';
+  document.getElementById('fee-v').textContent      = money(p.fee) + ' / ' + p.mode;
+  document.getElementById('loaded-sub').textContent = '= ' + money(fullyLoaded) + ' / human / wk fully loaded';
+  document.getElementById('aht-err').textContent    = invertedAHT
+    ? 'Hard-contact handle time must be ≥ easy-contact handle time.' : '';
 
-  // --- readouts ---
-  document.getElementById('auto-rate').textContent = (now.a * 100).toFixed(1) + '%'
-    + '  (coverage ' + coveragePct + '% × success ' + Math.round(p.success*100) + '%)';
+  // --- results strip ---
+  document.getElementById('kpi-humans').textContent = fmt0(now.headcount);
+  document.getElementById('kpi-cost').textContent   = money(now.blended);
+  document.getElementById('kpi-weekly').textContent = moneyK(Math.round(now.headcount) * fullyLoaded);
+  document.getElementById('resolves').innerHTML =
+    'AI agents resolve <b>' + (now.a * 100).toFixed(0) + '%</b> of contacts - humans still handle <b>'
+    + fmt0(now.humanTickets) + '/wk</b>, and those are the hard ones.';
 
-  document.getElementById('naive-hc').textContent = fmt0(now.naiveHC) + ' ppl';
-  document.getElementById('model-hc').textContent = fmt0(now.headcount) + ' ppl';
-  const gap = now.headcount - now.naiveHC;
-  const gapEl = document.getElementById('gap-line');
-  if (Math.round(gap) > 0) {
-    gapEl.classList.remove('zero');
-    gapEl.textContent = '▲ you\'d under-staff by ' + fmt0(gap) + ' people';
+  const delta = document.getElementById('delta');
+  if (invertedAHT) {
+    delta.classList.remove('hidden');
+    delta.textContent = '⚠ Fix the handle-time inputs above to read the staffing gap.';
+  } else if (Math.round(gap) > 0) {
+    delta.classList.remove('hidden');
+    delta.textContent = '⚠ You\'d be ' + fmt0(gap) + ' humans short (≈ ' + moneyK(gap * fullyLoaded)
+      + '/wk) if you staffed on average handle time.';
   } else {
-    gapEl.classList.add('zero');
-    gapEl.textContent = 'no gap (easy AHT = hard AHT)';
+    delta.classList.add('hidden');
   }
 
-  document.getElementById('staff-cost').textContent =
-    moneyK(now.headcount * fullyLoaded) + ' / wk  (' + fmt0(now.headcount) + ' × ' + money(fullyLoaded) + ')';
-
-  // --- regime badge ---
-  const regEl = document.getElementById('regime');
-  regEl.textContent = regime.text;
+  // --- cost chart head ---
+  document.getElementById('regime').textContent = regime.badge;
+  document.getElementById('cost-cap').textContent = regime.detail + ' Now: ' + money(now.blended) + ' per contact.';
 
   // --- charts ---
   if (!hcChart) buildCharts();
@@ -462,14 +416,16 @@ function update() {
   hcChart.data.datasets[0].data = sweepData.hc;
   hcChart.data.datasets[1].data = sweepData.naive;
   hcChart.options.plugins.annotation.annotations = {
-    coverageLine: vLine(coveragePct, '#5b9dff', 'coverage ' + coveragePct + '%'),
+    coverageLine: vLine(coveragePct, '#5b9dff', coveragePct + '% sent to AI'),
     floorLine: {
       type: 'line', yMin: floorHC, yMax: floorHC,
       borderColor: '#ff5d6c', borderWidth: 1.5, borderDash: [6, 4],
       label: {
-        display: true, content: 'floor ≈ ' + fmt0(floorHC) + ' — set by (1 − success)',
-        position: 'start', color: '#ff5d6c', backgroundColor: 'rgba(255,93,108,.10)',
-        font: { size: 10, weight: '600' }, padding: 4,
+        display: true,
+        content: floorHC < 0.5 ? 'Floor: 0 humans' : 'Floor: ' + fmt0(floorHC) + ' humans',
+        position: 'start', color: '#ff8d98',
+        backgroundColor: 'rgba(15,17,21,.85)',
+        font: { size: 10, weight: '700' }, padding: 4, yAdjust: -9,
       },
     },
     nowPoint: dot(coveragePct, now.headcount, '#5b9dff'),
@@ -486,7 +442,7 @@ function update() {
     costAnn.regimeLine = {
       type: 'line', xMin: regime.markX, xMax: regime.markX,
       borderColor: '#ff5d6c', borderWidth: 1.5, borderDash: [4, 4],
-      label: { display: true, content: 'worst ' + regime.markX + '%', position: 'end',
+      label: { display: true, content: 'priciest ' + regime.markX + '%', position: 'end',
                color: '#ff5d6c', backgroundColor: 'rgba(255,93,108,.10)', font: { size: 10, weight: '600' }, padding: 3 },
     };
   }
@@ -496,8 +452,7 @@ function update() {
 
 function vLine(x, color, label) {
   return {
-    type: 'line', xMin: x, xMax: x,
-    borderColor: color, borderWidth: 1.5,
+    type: 'line', xMin: x, xMax: x, borderColor: color, borderWidth: 1.5,
     label: { display: true, content: label, position: 'start', color: '#0f1115',
              backgroundColor: color, font: { size: 10, weight: '700' }, padding: 3, yAdjust: -2 },
   };
@@ -510,15 +465,6 @@ function dot(x, y, color) {
 document.querySelectorAll('input').forEach(el => {
   el.addEventListener('input', update);
   el.addEventListener('change', update);
-});
-
-// planning lens selection (cosmetic — it's an interpretation lens, computes nothing)
-document.querySelectorAll('.lens .opt').forEach(opt => {
-  opt.addEventListener('click', () => {
-    document.querySelectorAll('.lens .opt').forEach(o => o.classList.remove('sel'));
-    opt.classList.add('sel');
-    opt.querySelector('input').checked = true;
-  });
 });
 
 update();
