@@ -24,13 +24,13 @@ The part the headcount-cut math misses: if AI handles 70% of contacts, you can't
 So my answer is:
 
 1. **Headcount drops to a floor, not zero.** Effective automation is `coverage x success`. AI success isn't 100%, so `volume x (1 - success)` always bounces to a human. The floor is set by the resolution rate, not coverage. Buying more coverage can't remove it.
-2. **The floor costs more than naive math says.** AI eats the easy tickets first, so the survivors are the hard ones. The human average handle time drifts up on its own as coverage rises. Naive math multiplies the leftover volume by the baseline AHT; honest math multiplies by the residual AHT, which is bigger. On the defaults that gap is 13 people (44 vs 31).
+2. **The floor costs more than the headcount-cut math says.** AI clears the easy tickets first, so the survivors are the hard ones. The average handle time of what's left drifts up on its own as coverage rises. The shortcut sizes the leftover volume at your *average* AHT; the real plan sizes it at the AHT of *what's actually left*, which is higher. On the defaults that gap is 13 people (44 vs 31).
 
-Then the cost question nobody asks: does pushing coverage higher actually save money per contact? Answer: there's no sweet spot. Blended cost is concave in coverage, so it's monotone or worst-in-the-middle, never best-in-the-middle. The chart names which regime your inputs land in. Hand someone the sliders and dare them to find the optimum - there isn't one in the clean model.
+Then the cost question: does more AI actually lower your cost per contact? There's no magic middle setting. Depending on your AI price, cost per contact either keeps dropping as you add AI, keeps rising, or is worst somewhere in the middle - but it is never *cheapest* in the middle. The chart tells you which case you're in. So if someone asks you to "find the AI level that minimizes cost," there isn't one to hunt for: the cheapest point is always all-in or none.
 
 ## The model
 
-The math is named methods, not vibes. Every line is reproducible:
+The math is standard, named methods. Every line is reproducible:
 
 ```
 a (effective automation) = coverage x success
@@ -46,7 +46,7 @@ human cost               = human hours x human $/hr
 blended $/contact        = (AI cost + human cost) / volume
 ```
 
-Difficulty is a straight-line ramp from easy to hard, and AI removes the easy slice first. Two AHT endpoints alone don't fix the residual average - the shape does, and that's the stated shape.
+We assume difficulty rises evenly from easy to hard, and AI takes the easy contacts first. So as AI handles more, the average handle time of what's left climbs toward the hard end.
 
 Inputs: weekly volume, % sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
 
