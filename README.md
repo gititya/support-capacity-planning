@@ -24,24 +24,51 @@ And the reason the survivors are slower - the exact mechanism this prototype is 
 > "As AI absorbs routine interactions, the cases that reach a human are no longer average. They're the unresolved edge cases... the exceptions or the moments where the model lacked context or confidence." ... "Automation reduces repetitive labor while heightening accountability."
 > - [Ryan Wang (Assembled), Forbes, Apr 2 2026](https://www.forbes.com/councils/forbestechcouncil/2026/04/02/why-the-impact-of-ai-on-customer-support-isnt-what-leaders-expected/)
 
-The part the headcount-cut math misses: if AI handles 70% of contacts, you can't just staff the remaining 30% at your old numbers. Once the easy contacts are gone, it stops being a volume game and becomes an AHT game - the contacts that survive are the slow, hard ones. Staffing for "30% of volume" silently understaffs.
+My answer is simple: AI cuts ticket volume, but it doesn't cut support work in a straight line.
 
-So my answer is:
+AI handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "AI handled 70%, so cut 70%" doesn't hold.
 
-1. **Headcount drops to a floor, not zero.** Effective automation is `coverage x success`. AI success isn't 100%, so `volume x (1 - success)` always bounces to a human. The floor is set by the resolution rate, not coverage. Buying more coverage can't remove it.
-2. **The floor costs more than the headcount-cut math says.** AI clears the easy tickets first, so the survivors are the hard ones. The average handle time of what's left drifts up on its own as coverage rises. The shortcut sizes the leftover volume at your *average* AHT; the real plan sizes it at the AHT of *what's actually left*, which is higher. On the defaults that gap is 13 people (44 vs 31).
+Three things this tool shows:
 
-Then the cost question: does more AI actually lower your cost per contact? There's no magic middle setting. Depending on your AI price, cost per contact either keeps dropping as you add AI, keeps rising, or is worst somewhere in the middle - but it is never *cheapest* in the middle. The chart tells you which case you're in. So if someone asks you to "find the AI level that minimizes cost," there isn't one to hunt for: the cheapest point is always all-in or none.
+1. **AI never takes you to zero people.** AI doesn't resolve every contact it tries. Whatever it misses lands on a human. So there's always a floor - and adding more AI can't get you below it.
+2. **That floor is bigger than the headline number.** Since AI cleared the easy ones, the contacts left are the hard, slow ones. Plan for the leftover volume at your *normal* handle time and you'll under-hire. Fewer tickets, but each takes longer.
+3. **There's no obvious "right amount" of AI.** Cost per contact usually lands cheapest near one edge - low AI or high AI - not in the middle. Real vendor pricing can shift that, so treat the chart as a pressure test, not a procurement answer.
+
+Move the AI coverage slider and watch the tradeoff: fewer human tickets, harder remaining tickets, changing headcount, and blended cost per contact. It's not a forecast - it's a sanity check for the lazy version of AI capacity planning.
 
 ## The model
 
-The math is standard, named methods. Every line is reproducible:
+One assumption drives everything: AI picks off the easier contacts first, so the contacts that reach a human are the harder leftovers.
+
+From there it works out four things:
+
+1. How many contacts AI attempts.
+2. How many it resolves.
+3. How many fall back to a human.
+4. How long that leftover human work takes.
+
+Staffing is based on those labor hours, not the raw ticket count. That's the whole point: a team can get fewer tickets and still not get the headcount cut people expect, because the tickets that are left are slower.
+
+### Model details
+
+For anyone checking the math:
+
+- effective automation = AI coverage × AI success rate
+- human tickets = total volume × unresolved share
+- human hours = human tickets × handle time of the remaining tickets
+- headcount = human hours ÷ productive hours per agent
+- blended cost/contact = (AI cost + human labor cost) ÷ total contacts
+
+The one opinionated piece is the handle-time curve: because AI removes the easier contacts first, the average handle time of the contacts left for humans rises as AI coverage goes up.
+
+<details>
+<summary>Full formulas, exact</summary>
 
 ```
 a (effective automation) = coverage x success
 human tickets            = volume x (1 - a)
 baseline AHT             = (easy + hard) / 2                  <- naive math uses this
-residual AHT             = easy + (hard - easy) x (1 + a)/2   <- conditional mean over the surviving slice [a,1]
+residual AHT             = easy + (hard - easy) x (1 + a)/2   <- mean over the surviving slice [a,1]
 human hours              = human tickets x residual AHT / 60
 headcount                = human hours / productive hrs per agent
 attempts                 = volume x coverage
@@ -51,9 +78,9 @@ human cost               = human hours x human $/hr
 blended $/contact        = (AI cost + human cost) / volume
 ```
 
-We assume difficulty rises evenly from easy to hard, and AI takes the easy contacts first. So as AI handles more, the average handle time of what's left climbs toward the hard end.
-
 Inputs: weekly volume, % sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
+
+</details>
 
 ## What this is not
 
@@ -73,13 +100,11 @@ Inputs: weekly volume, % sent to AI, AI resolution rate, easy-contact AHT, hard-
 python skills/ai-capacity-planner/scripts/ai_capacity_modeler.py --sample
 ```
 
-## Methods this is derived from
+## Where the logic comes from
 
-1. **Deterministic workload staffing** (hours -> FTE). `headcount = human hours / productive hrs per agent`. The Erlang-C-free side of WFM, the one used for deferred / async work.
-2. **Truncated-mean selection** for the rising AHT. Lay difficulty on [0,1], let AI remove the bottom slice, and take the conditional mean over the surviving tail. Cream-skimming, basically.
-3. **Blended unit-cost accounting** for $/contact.
-4. **Concavity / second derivative.** Within the clean continuous model, blended cost has no interior minimum - it's monotone or most expensive in the middle.
+Four standard methods, named, with the plain-English version after each:
 
-## Why no Erlang-C
-
-Erlang-C sizes a real-time queue against a service-level target (answer 80% in 20s, random arrivals, shared pool). This model doesn't target a service level and doesn't model arrival randomness - it sizes labor-hours. So it stops short of Erlang-C on purpose and hands the residual off to it. The two are complementary, not the same method. The honest seam: if the leftover tickets are synchronous (chat, phone), you need Erlang-C on top, and this FTE is an understatement, because Erlang-C wants occupancy headroom for randomness.
+1. **[Workload-to-FTE staffing](https://www.indeed.com/hire/c/info/full-time-equivalent)** - the WFM way of turning a pile of work-hours into a number of people. *Plain version:* add up the hours the leftover tickets will take, divide by the hours one agent actually works in a week.
+2. **[Truncated mean](https://en.wikipedia.org/wiki/Truncated_mean)** (a.k.a. conditional tail expectation) - the average of what's left after you cut off one end of a range. *Plain version:* AI takes the easy tickets, so you average the handle time of the *hard ones that remain* - which is higher than the all-tickets average.
+3. **[Cost per contact](https://www.calabrio.com/glossary/cost-per-call/)** - the standard contact-center efficiency metric. *Plain version:* add AI cost and human labor cost, divide by total contacts. "Blended" just means both in one number.
+4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** - the queue-sizing math real WFM uses for live channels. *Plain version:* this tool stops *before* that. If the leftover work is phone or chat, you still need Erlang-C on top - this only estimates the work left after AI.
