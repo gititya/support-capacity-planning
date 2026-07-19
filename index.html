@@ -92,13 +92,6 @@
   .kpi.primary .num { color: var(--human); }
   .kpi .unit { font-size: 14px; font-weight: 600; color: var(--ink-dim); margin-left: 4px; }
   .kpi .note { color: var(--ink-faint); font-size: 11px; margin-top: 5px; }
-  .resolves {
-    color: var(--ink-dim); font-size: 12.5px; margin: 10px 0 0;
-    padding: 9px 14px; border-radius: 8px;
-    background: linear-gradient(135deg, rgba(124,92,255,.10), rgba(124,92,255,.03));
-    border: 1px solid rgba(124,92,255,.22); border-left: 3px solid var(--accent);
-  }
-  .resolves b { color: var(--ink); font-weight: 700; }
   .insight {
     margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
     display: none;
@@ -115,8 +108,9 @@
   }
   .buildup-title {
     font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
-    color: var(--ink-faint); margin-bottom: 10px;
+    color: var(--ink-faint); margin-bottom: 4px;
   }
+  .buildup-legend { font-size: 11.5px; color: var(--ink-faint); line-height: 1.4; margin-bottom: 10px; }
   .buildup-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
   .bnode {
     display: flex; flex-direction: column; justify-content: center; gap: 2px;
@@ -189,33 +183,6 @@
   }
   .summary-val { font-size: 12px; font-weight: 600; color: var(--ink-dim); }
 
-  /* ---- Summary footer ---- */
-  .summary-footer {
-    margin-top: 28px; background: var(--panel); border: 1px solid var(--line);
-    border-radius: 12px; padding: 16px 20px;
-  }
-  .summary-footer > summary {
-    cursor: pointer; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
-    color: var(--ink-dim); font-weight: 700; list-style: none;
-  }
-  .summary-footer > summary::-webkit-details-marker { display: none; }
-  .summary-footer > summary::before { content: "\25B8 "; color: var(--ink-faint); }
-  .summary-footer[open] > summary::before { content: "\25BE "; }
-  .summary-footer[open] > summary { margin-bottom: 12px; }
-  .summary-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; margin-top: 4px;
-  }
-  .summary-grid .full { grid-column: 1 / -1; }
-  .summary-item {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
-    padding: 7px 0; border-bottom: 1px solid var(--line);
-  }
-  .summary-item .k { color: var(--ink-faint); font-size: 11.5px; }
-  .summary-item .v {
-    color: var(--ink); font-size: 12.5px; font-weight: 700; white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-
   .stage-nav {
     display: flex; justify-content: space-between; margin-top: 16px; padding-top: 12px;
     border-top: 1px solid var(--line);
@@ -258,7 +225,7 @@
 
   <!-- ============ STEPPER ============ -->
   <nav class="stepper">
-    <button class="step" data-stage="1"><span class="step-num">1</span><span class="step-label">How many agents</span></button>
+    <button class="step" data-stage="1"><span class="step-num">1</span><span class="step-label">How many human agents</span></button>
     <button class="step" data-stage="2"><span class="step-num">2</span><span class="step-label">What AI does to that</span></button>
     <button class="step" data-stage="3"><span class="step-num">3</span><span class="step-label">When volume grows</span></button>
   </nav>
@@ -270,13 +237,13 @@
 
   <!-- ============ WALKTHROUGH BLOCKS ============ -->
   <div class="walkthrough" data-stage="1">
-    Say your team handles <strong>10,000 contacts a week</strong> and you route some to AI agents. The quick way to size the team is to take the contacts left over and divide by your average handle time. That number runs low every time. <strong>AI agents clear the easy contacts first</strong>, so what survives for human agents is the hard, slow work. Push coverage all the way up and you still don&rsquo;t reach zero. There&rsquo;s a floor of human agents you always need.
+    <strong>AI agents clear the easy contacts first</strong>, so what&rsquo;s left for human agents is the hard, slow work &mdash; sizing the team on your average handle time runs low every time. And the share AI can&rsquo;t resolve always comes back, so there&rsquo;s a <strong>floor of human agents you can&rsquo;t staff below</strong>.
   </div>
   <div class="walkthrough" data-stage="2">
-    AI moves your headcount two ways at once. Every contact AI resolves still needs a human agent to check it, which <strong>pushes the floor up</strong>. At the same time, AI assists your team on the contacts they keep, which <strong>pulls it back down</strong>. Set both levers below and watch where the floor settles once they net out.
+    AI moves headcount two ways at once: checking AI&rsquo;s work <strong>pushes the floor up</strong>, AI assisting your team <strong>pulls it back down</strong>. Set both below and watch where it settles.
   </div>
   <div class="walkthrough" data-stage="3">
-    For most teams the real win from AI isn&rsquo;t a smaller team. It&rsquo;s handling more contacts without hiring at the same pace. Set your expected volume growth, switch to the After-growth view, and compare the human agents you&rsquo;d need with AI against the number you&rsquo;d need without it.
+    For most teams the real win from AI isn&rsquo;t a smaller team &mdash; it&rsquo;s handling more contacts without hiring at the same pace. Set your expected growth and see how many hires AI absorbs.
   </div>
 
   <!-- ============ RESULTS STRIP ============ -->
@@ -285,7 +252,7 @@
     <div class="kpis">
       <div class="kpi primary">
         <div class="label">Human agents you still need</div>
-        <div class="num"><span id="kpi-humans"></span><span class="unit">agents</span></div>
+        <div class="num"><span id="kpi-humans"></span><span class="unit">human agents</span></div>
       </div>
       <div class="kpi">
         <div class="label">Cost per contact</div>
@@ -295,11 +262,12 @@
       <div class="kpi">
         <div class="label">Weekly team cost</div>
         <div class="num" id="kpi-weekly"></div>
+        <div class="note">human agents &times; all-in weekly cost each</div>
       </div>
     </div>
-    <p class="resolves" id="resolves"></p>
     <div class="buildup">
-      <div class="buildup-title">How the agent count adds up, at <span id="buildup-cov"></span>% to AI agents</div>
+      <div class="buildup-title">How the human-agent count builds up, at <span id="buildup-cov"></span>% routed to AI</div>
+      <div class="buildup-legend">Start from the count a flat average gives you, then each step is what reality adds or removes. The last box is your real number.</div>
       <div class="buildup-row" id="buildup-row"></div>
     </div>
     <div class="insight warn" id="insight-1"></div>
@@ -314,7 +282,7 @@
 
       <!-- Collapsed summaries for completed stages -->
       <div class="stage-summary" data-stage="1" id="summary-1">
-        <div class="summary-label">How many agents</div>
+        <div class="summary-label">How many human agents</div>
         <div class="summary-val" id="summary-1-val"></div>
       </div>
       <div class="stage-summary" data-stage="2" id="summary-2">
@@ -351,11 +319,11 @@
           <p class="err" id="aht-err"></p>
         </div>
         <div class="lever">
-          <div class="row"><label for="prodhrs">Productive hrs / agent / wk</label><span class="val" id="prodhrs-v"></span></div>
+          <div class="row"><label for="prodhrs">Productive hrs / human agent / wk</label><span class="val" id="prodhrs-v"></span></div>
           <input type="number" id="prodhrs" value="32" min="1" step="1">
         </div>
         <div class="lever">
-          <div class="row"><label for="rate">Cost / agent-hour</label><span class="val" id="rate-v"></span></div>
+          <div class="row"><label for="rate">Cost / human agent-hour</label><span class="val" id="rate-v"></span></div>
           <input type="number" id="rate" value="28" min="0" step="1">
           <div class="sub" id="loaded-sub"></div>
         </div>
@@ -384,13 +352,9 @@
 
         <div class="group-label">AI assist</div>
         <div class="lever">
-          <div class="row"><label for="assistshare"><span class="tip" title="Of the contacts human agents handle, the share where AI assists first (drafts a reply, pulls up history, summarizes). A human agent still finishes, but faster.">Share of human contacts AI assists</span></label><span class="val" id="assistshare-v"></span></div>
-          <input type="range" id="assistshare" value="0" min="0" max="100" step="1">
-        </div>
-        <div class="lever">
-          <div class="row"><label for="assistfactor"><span class="tip" title="Handle time on an AI-assisted contact, as a share of an unassisted one. 1.0 = no change, 0.7 = 30% faster.">Handle time when AI assists</span></label><span class="val" id="assistfactor-v"></span></div>
-          <input type="number" id="assistfactor" value="1.00" min="0.5" max="1" step="0.05">
-          <div class="sub">share of normal handle time (1.0 = no change, 0.7 = 30% faster)</div>
+          <div class="row"><label for="assistsave"><span class="tip" title="On the contacts your team keeps, AI drafts replies, pulls up history, summarizes. A human agent still finishes, but faster. This is the overall cut to your team's handle time.">Handle time AI assist saves</span></label><span class="val" id="assistsave-v"></span></div>
+          <input type="range" id="assistsave" value="0" min="0" max="60" step="1">
+          <div class="sub">e.g. AI assists 40% of contacts and makes each 30% faster = 12% saved</div>
         </div>
       </section>
 
@@ -398,15 +362,9 @@
       <section class="stage-group" data-stage="3">
         <div class="group-label">Growth</div>
         <div class="lever">
-          <div class="row"><label for="growth"><span class="tip" title="How much you expect weekly contacts to rise. Switch to the After-growth view to see it.">Volume growth</span></label><span class="val" id="growth-v"></span></div>
+          <div class="row"><label for="growth"><span class="tip" title="How much you expect weekly contacts to rise. The takeaway below compares hiring with AI vs without.">Volume growth</span></label><span class="val" id="growth-v"></span></div>
           <input type="number" id="growth" value="0" min="0" step="5">
           <div class="sub">% more contacts per week</div>
-        </div>
-        <div class="lever">
-          <div class="radio-group radio-row">
-            <label><input type="radio" name="view" value="snapshot" checked> <span class="tip" title="Your team at today's volume">Today</span></label>
-            <label><input type="radio" name="view" value="growth"> <span class="tip" title="Your team after volume grows">After growth</span></label>
-          </div>
         </div>
       </section>
 
@@ -421,38 +379,20 @@
     <div class="charts">
       <div class="panel">
         <div class="chart-head"><span class="title">Human agents you still need, as AI agents take more</span></div>
-        <p class="cap"><b style="color:var(--human)">Blue</b> = human agents you really need. <b style="color:#8b93a3">Grey</b> = the under-count from a flat average. <b style="color:var(--floor)">Red</b> = the floor, even at full AI coverage. The gap between blue and grey is what you'd be short.</p>
+        <p class="cap"><b style="color:var(--human)">Blue</b> = what you really need. <b style="color:#8b93a3">Grey</b> = what a flat average says. <b style="color:var(--floor)">Red</b> = the floor, even at 100% AI. The blue&ndash;grey gap is your shortfall.</p>
         <div class="chart-box hero-box"><canvas id="hcChart"></canvas></div>
       </div>
 
       <div class="panel">
-        <div class="chart-head"><span class="title">Cost per contact (AI fees + agent time)</span><span class="regime" id="regime"></span></div>
+        <div class="chart-head"><span class="title">Cost per contact (AI fees + human-agent time)</span><span class="regime" id="regime"></span></div>
         <p class="cap" id="cost-cap"></p>
         <div class="chart-box"><canvas id="costChart"></canvas></div>
-        <p class="cap-why"><b>Why there's no "best" coverage:</b> each extra contact you route to AI agents changes cost at a steady or shrinking rate, never a growing one. So cost can only bottom out at one of the ends, all AI agents or none, not in the middle. The badge above names which end wins for your inputs.</p>
-        <p class="caveat">This is the clean version of the math. In real life a middle sweet spot can come back, from hiring in whole agents, minimum staff per shift, bulk AI discounts, flat platform fees, or penalties for missing targets.</p>
+        <p class="cap-why"><b>Why there's no "best" coverage:</b> in this model, cost only ever bottoms out at one of the ends &mdash; all AI or none, never the middle. The badge above names which end wins for your inputs.</p>
+        <p class="caveat">Clean-math version. Real life can bring a middle sweet spot back: whole-person hiring, minimum shift staffing, bulk AI discounts, flat platform fees.</p>
       </div>
     </div>
   </div>
 
-  <!-- ============ SUMMARY FOOTER ============ -->
-  <details class="summary-footer">
-    <summary>Everything you set, at a glance</summary>
-    <div class="summary-grid">
-      <div class="summary-item full"><span class="k">Weekly contacts</span><span class="v" id="sum-volume"></span></div>
-      <div class="summary-item"><span class="k">% sent to AI agents</span><span class="v" id="sum-coverage"></span></div>
-      <div class="summary-item"><span class="k">AI resolution rate</span><span class="v" id="sum-success"></span></div>
-      <div class="summary-item"><span class="k">Handle time - easy</span><span class="v" id="sum-easy"></span></div>
-      <div class="summary-item"><span class="k">Handle time - hard</span><span class="v" id="sum-hard"></span></div>
-      <div class="summary-item"><span class="k">Productive hrs / agent / wk</span><span class="v" id="sum-prodhrs"></span></div>
-      <div class="summary-item"><span class="k">Cost / agent-hour</span><span class="v" id="sum-rate"></span></div>
-      <div class="summary-item full"><span class="k">AI fee</span><span class="v" id="sum-fee"></span></div>
-      <div class="summary-item"><span class="k">Oversight per AI resolution</span><span class="v" id="sum-supmin"></span></div>
-      <div class="summary-item"><span class="k">AI assist</span><span class="v" id="sum-assist"></span></div>
-      <div class="summary-item full"><span class="k">Volume growth</span><span class="v" id="sum-growth"></span></div>
-      <div class="summary-item full"><span class="k">Result</span><span class="v" id="sum-result"></span></div>
-    </div>
-  </details>
 </div>
 
 <script>
@@ -470,9 +410,7 @@ function readInputs() {
     mode:        document.querySelector('input[name="mode"]:checked').value,
     supMin:      +document.getElementById('supmin').value,
     growth:      +document.getElementById('growth').value / 100,
-    view:        document.querySelector('input[name="view"]:checked').value,
-    assistShare: +document.getElementById('assistshare').value / 100,
-    assistFactor:+document.getElementById('assistfactor').value,
+    assistSave:  +document.getElementById('assistsave').value / 100,
   };
 }
 
@@ -484,7 +422,7 @@ function derive(cov, p) {
   const resAHT       = p.easy + (p.hard - p.easy) * (1 + a) / 2;
   const attempts     = p.volume * cov;
   const resolutions  = p.volume * a;
-  const assistMix    = 1 - p.assistShare * (1 - p.assistFactor);
+  const assistMix    = 1 - p.assistSave;
   const supHours     = resolutions * p.supMin / 60;
   const humanHours   = humanTickets * resAHT * assistMix / 60 + supHours;
   const headcount    = humanHours / p.prodHrs;
@@ -585,16 +523,14 @@ function setStage(n) {
   update();
 }
 
-function renderSummaries(now, p, viewParams, floorHC) {
+function renderSummaries(now, p) {
   const gap = now.headcount - now.naiveHC;
   document.getElementById('summary-1-val').textContent =
     fmt0(now.headcount) + ' human agents needed. A flat average says ' + fmt0(now.naiveHC)
     + ', so you\'d be ' + fmt0(gap) + ' short.';
 
-  var hasChecking = p.supMin > 0;
-  var hasHelp = p.assistShare > 0 && p.assistFactor < 1;
-  if (hasChecking || hasHelp) {
-    var plain = derive(p.coverage, {...viewParams, supMin: 0, assistShare: 0}).headcount;
+  if (p.supMin > 0 || p.assistSave > 0) {
+    var plain = derive(p.coverage, {...p, supMin: 0, assistSave: 0}).headcount;
     var net = now.headcount - plain;
     var dir = net > 0 ? 'up ' + fmt0(net) : net < 0 ? 'down ' + fmt0(-net) : 'unchanged';
     document.getElementById('summary-2-val').textContent =
@@ -604,16 +540,16 @@ function renderSummaries(now, p, viewParams, floorHC) {
   }
 }
 
-function renderBuildup(p, viewParams, now) {
+function renderBuildup(p, now) {
   const cov = p.coverage;
-  const diff = derive(cov, {...viewParams, supMin: 0, assistShare: 0}).headcount;  // hard tickets, no oversight/assist
-  const overs = derive(cov, {...viewParams, assistShare: 0}).headcount;            // + oversight
-  const final = now.headcount;                                                     // + AI assist
+  const diff = derive(cov, {...p, supMin: 0, assistSave: 0}).headcount;  // hard tickets, no oversight/assist
+  const overs = derive(cov, {...p, assistSave: 0}).headcount;            // + oversight
+  const final = now.headcount;                                           // + AI assist
   const r = Math.round;
 
   const steps = [
-    { label: 'Flat average', val: now.naiveHC },
-    { label: 'Hard tickets survive', val: diff },
+    { label: 'Staffed on the average', val: now.naiveHC },
+    { label: 'After hard tickets pile up', val: diff },
   ];
   if (r(overs) !== r(diff)) steps.push({ label: 'Oversight', val: overs });
   if (r(final) !== r(steps[steps.length - 1].val)) steps.push({ label: 'AI assist', val: final });
@@ -635,6 +571,50 @@ function renderBuildup(p, viewParams, now) {
       + '<span class="blabel">' + steps[i].label + '</span></div>';
   }
   document.getElementById('buildup-row').innerHTML = html;
+}
+
+// ---------- dynamic verdict (rule-based, reads the model's own numbers) ----------
+function verdict(p, regime) {
+  const snap        = derive(p.coverage, p);
+  const todayHead   = Math.round(snap.headcount);
+  const floorToday  = Math.round(derive(1, p).headcount);
+  const floorShare  = snap.headcount > 0 ? floorToday / snap.headcount : 0;
+
+  // Floor reality: how much can AI actually shrink this team?
+  let floorLine;
+  if (floorShare >= 0.6) {
+    floorLine = 'Even at full AI you\'d still need ' + floorToday + ' of today\'s ' + todayHead
+      + ' human agents. At a ' + Math.round(p.success * 100)
+      + '% AI resolution rate, AI won\'t shrink this team much, so don\'t plan on firing your way to it.';
+  } else if (floorShare >= 0.3) {
+    floorLine = 'Full AI takes you toward a floor of ' + floorToday + ' human agents, down from '
+      + todayHead + ' today. A real cut, but never to zero.';
+  } else {
+    floorLine = 'At this resolution rate AI can pull headcount low (floor ' + floorToday
+      + ' human agents), but there is still a floor you can\'t staff below.';
+  }
+
+  // Growth payoff: lean scaling, the real win for most teams.
+  let growthLine;
+  if (p.growth > 0) {
+    const fut      = {...p, volume: p.volume * (1 + p.growth)};
+    const withAI   = Math.round(derive(p.coverage, fut).headcount);
+    const noAI     = Math.round(derive(0, {...fut, supMin: 0, assistSave: 0}).headcount);
+    const absorbed = noAI - withAI;
+    growthLine = ' Hold this resolution rate and coverage and +' + Math.round(p.growth * 100)
+      + '% volume needs ' + withAI + ' human agents instead of ' + noAI + ' without AI - '
+      + absorbed + ' hires AI absorbs. That\'s the lever: scale lean, not to zero.';
+  } else {
+    growthLine = ' Set a growth % above to see how many new hires AI absorbs.';
+  }
+
+  // Cost caveat only when AI is actively making per-contact cost worse.
+  let costLine = '';
+  if (regime && regime.badge === "AI doesn't pay here") {
+    costLine = ' Note: at this AI fee more coverage raises cost per contact, so the win here is capacity, not savings.';
+  }
+
+  return floorLine + growthLine + costLine;
 }
 
 // ---------- charts ----------
@@ -697,7 +677,7 @@ function chartOpts(yTitle, isCost) {
           title: items => items[0].label + '% sent to AI agents',
           label: ctx => isCost
             ? ' ' + ctx.dataset.label + ': ' + money(ctx.parsed.y)
-            : ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' agents',
+            : ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' human agents',
         },
       },
       annotation: { annotations: {} },
@@ -709,11 +689,9 @@ function chartOpts(yTitle, isCost) {
 // ---------- render / update ----------
 function update() {
   const p = readInputs();
-  const isGrowth = p.view === 'growth' && p.growth > 0;
-  const viewParams = isGrowth ? {...p, volume: p.volume * (1 + p.growth)} : p;
-  sweepData = sweep(viewParams);
-  const now = derive(p.coverage, viewParams);
-  const floorHC = derive(1, viewParams).headcount;
+  sweepData = sweep(p);
+  const now = derive(p.coverage, p);
+  const floorHC = derive(1, p).headcount;
   const fullyLoaded = p.rate * p.prodHrs;
   const regime = classifyRegime(sweepData.cost);
   const coveragePct = Math.round(p.coverage * 100);
@@ -731,10 +709,9 @@ function update() {
   document.getElementById('prodhrs-v').textContent     = p.prodHrs + ' hrs';
   document.getElementById('rate-v').textContent        = '$' + p.rate + ' / hr';
   document.getElementById('supmin-v').textContent      = p.supMin + ' min';
-  document.getElementById('assistshare-v').textContent = Math.round(p.assistShare * 100) + '%';
-  document.getElementById('assistfactor-v').textContent= p.assistFactor.toFixed(2) + '×';
+  document.getElementById('assistsave-v').textContent  = Math.round(p.assistSave * 100) + '% faster';
   document.getElementById('fee-v').textContent         = money(p.fee) + ' / ' + p.mode;
-  document.getElementById('loaded-sub').textContent    = '= ' + money(fullyLoaded) + ' / person / wk, all-in';
+  document.getElementById('loaded-sub').textContent    = '= ' + money(fullyLoaded) + ' / human agent / wk, all-in';
   document.getElementById('aht-err').textContent       = invertedAHT
     ? 'Hard-contact handle time must be ≥ easy-contact handle time.' : '';
 
@@ -742,9 +719,6 @@ function update() {
   document.getElementById('kpi-humans').textContent = fmt0(now.headcount);
   document.getElementById('kpi-cost').textContent   = money(now.blended);
   document.getElementById('kpi-weekly').textContent = moneyK(Math.round(now.headcount) * fullyLoaded);
-  document.getElementById('resolves').innerHTML =
-    'AI agents resolve <b>' + (now.a * 100).toFixed(0) + '%</b> of contacts. Human agents still handle <b>'
-    + fmt0(now.humanTickets) + '/wk</b>, and those are the hard ones.';
 
   // --- stage-specific insight callouts ---
   for (var i = 1; i <= 3; i++) document.getElementById('insight-' + i).classList.remove('active');
@@ -756,21 +730,23 @@ function update() {
       ins1.textContent = '⚠ Fix the handle-time inputs: hard must be ≥ easy.';
     } else if (Math.round(gap) > 0) {
       ins1.classList.add('active');
-      ins1.textContent = 'Push AI agents to 100% and you still need ' + fmt0(floorHC) + ' human agents, the floor. '
-        + 'Size the team on a flat average today and you\'re ' + fmt0(gap) + ' short, about '
-        + moneyK(gap * fullyLoaded) + '/wk.';
+      var gapR = Math.round(now.headcount) - Math.round(now.naiveHC);
+      ins1.textContent = 'Even at 100% routed to AI, the ' + Math.round((1 - p.success) * 100)
+        + '% AI can\'t resolve comes back to your team, so you still need ' + fmt0(floorHC)
+        + ' human agents, the floor. Size on the average today and you\'re ' + gapR
+        + ' human agents short, about ' + moneyK(gapR * fullyLoaded)
+        + '/wk of loaded human-agent capacity you didn\'t budget for.';
     }
   }
 
   if (currentStage === 2) {
     var ins2 = document.getElementById('insight-2');
     ins2.classList.add('active');
-    var hasChecking = p.supMin > 0;
-    var hasHelp = p.assistShare > 0 && p.assistFactor < 1;
-    if (hasChecking || hasHelp) {
-      var floorPlain = derive(1, {...viewParams, supMin: 0, assistShare: 0}).headcount;
-      ins2.textContent = 'The floor moves from ' + fmt0(floorPlain) + ' to ' + fmt0(floorHC)
-        + ' human agents. At today\'s ' + coveragePct + '% sent to AI agents, you need ' + fmt0(now.headcount) + '.';
+    if (p.supMin > 0 || p.assistSave > 0) {
+      var floorPlain = derive(1, {...p, supMin: 0, assistSave: 0}).headcount;
+      ins2.textContent = 'Your floor moves from ' + fmt0(floorPlain) + ' to ' + fmt0(floorHC)
+        + ' human agents. At today\'s ' + coveragePct + '% to AI, you need '
+        + fmt0(now.headcount) + '.';
     } else {
       ins2.textContent = 'Add oversight or AI assist below to watch the floor move.';
     }
@@ -779,37 +755,11 @@ function update() {
   if (currentStage === 3) {
     var ins3 = document.getElementById('insight-3');
     ins3.classList.add('active');
-    if (isGrowth) {
-      var noAIFuture = derive(0, viewParams).headcount;
-      ins3.textContent = 'Grow ' + Math.round(p.growth * 100) + '% and you need ' + fmt0(now.headcount)
-        + ' human agents with AI, versus ' + fmt0(noAIFuture) + ' without. AI absorbs '
-        + fmt0(noAIFuture - now.headcount) + ' new hires.';
-    } else {
-      ins3.textContent = 'Set a growth % and switch to the After-growth view to see it.';
-    }
+    ins3.textContent = verdict(p, regime);
   }
 
-  // --- summary footer (read-only recap) ---
-  document.getElementById('sum-volume').textContent   = fmt0(p.volume) + ' / wk';
-  document.getElementById('sum-coverage').textContent = coveragePct + '%';
-  document.getElementById('sum-success').textContent  = successPct + '%';
-  document.getElementById('sum-easy').textContent     = p.easy + ' min';
-  document.getElementById('sum-hard').textContent     = p.hard + ' min';
-  document.getElementById('sum-prodhrs').textContent  = p.prodHrs + ' hrs';
-  document.getElementById('sum-rate').textContent     = '$' + p.rate + ' / hr';
-  document.getElementById('sum-fee').textContent      = money(p.fee) + ' / ' + p.mode;
-  document.getElementById('sum-supmin').textContent   = p.supMin + ' min per resolution';
-  document.getElementById('sum-assist').textContent   =
-    p.assistShare > 0 && p.assistFactor < 1
-      ? Math.round(p.assistShare * 100) + '% of contacts, ' + (p.assistFactor * 100).toFixed(0) + '% of normal handle time'
-      : 'none';
-  document.getElementById('sum-growth').textContent   = p.growth > 0 ? '+' + Math.round(p.growth * 100) + '%' : '0%';
-  document.getElementById('sum-result').textContent   =
-    fmt0(now.headcount) + ' human agents, ' + money(now.blended) + ' per contact, '
-    + moneyK(Math.round(now.headcount) * fullyLoaded) + '/wk';
-
-  renderBuildup(p, viewParams, now);
-  renderSummaries(now, p, viewParams, floorHC);
+  renderBuildup(p, now);
+  renderSummaries(now, p);
 
   // --- cost chart head ---
   document.getElementById('regime').textContent = regime.badge;
@@ -828,7 +778,7 @@ function update() {
       borderColor: '#ff5d6c', borderWidth: 1.5, borderDash: [6, 4],
       label: {
         display: true,
-        content: floorHC < 0.5 ? 'Floor: 0 agents' : 'Floor: ' + fmt0(floorHC) + ' agents',
+        content: floorHC < 0.5 ? 'Floor: 0 human agents' : 'Floor: ' + fmt0(floorHC) + ' human agents',
         position: 'start', color: '#ff8d98',
         backgroundColor: 'rgba(15,17,21,.85)',
         font: { size: 10, weight: '700' }, padding: 4, yAdjust: -9,
