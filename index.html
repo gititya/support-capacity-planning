@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Capacity Planning - Support</title>
-<!-- Chart.js v4 + annotation plugin, via CDN (no install / no build) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
@@ -31,22 +30,59 @@
     font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 22px 40px; }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 32px 32px 48px; }
+
+  /* ---- Stepper ---- */
+  .stepper {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px;
+  }
+  .step {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; z-index: 1;
+    color: var(--ink-faint); font: inherit; font-size: 12.5px; font-weight: 600;
+    letter-spacing: .02em; transition: all .2s;
+  }
+  .step:not(.is-future) { cursor: pointer; }
+  .step:not(.is-future):hover { background: var(--panel-2); }
+  .step.is-future { cursor: default; opacity: .45; }
+  .step.is-active { border-color: var(--accent); background: linear-gradient(135deg, rgba(124,92,255,.12), rgba(124,92,255,.04)); }
+  .step.is-done { border-color: rgba(56,211,159,.35); background: linear-gradient(135deg, rgba(56,211,159,.08), rgba(56,211,159,.02)); }
+  .step-num {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; border: 2px solid var(--line); background: var(--bg);
+    flex-shrink: 0; transition: all .2s;
+  }
+  .step.is-active .step-num { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .step.is-done .step-num { border-color: var(--good); background: var(--good); color: #fff; font-size: 0; }
+  .step.is-done .step-num::after { content: '\2713'; font-size: 14px; }
+  .step-label { transition: color .2s; line-height: 1.2; }
+  .step.is-active .step-label { color: var(--ink); }
+  .step.is-done .step-label { color: var(--good); }
 
   /* ---- Hero ---- */
-  header { margin-bottom: 18px; }
-  header h1 { font-size: 30px; line-height: 1.12; margin: 0 0 6px; letter-spacing: -.4px; font-weight: 800; }
-  header p { margin: 0; color: var(--ink-dim); font-size: 14px; max-width: 720px; }
+  header { margin-bottom: 16px; }
+  header h1 { font-size: 28px; line-height: 1.15; margin: 0 0 5px; letter-spacing: -.4px; font-weight: 800; }
+  header p { margin: 0; color: var(--ink-dim); font-size: 13.5px; }
 
-  /* ---- Results strip (the answer) ---- */
-  .results { margin-bottom: 18px; }
+  /* ---- Walkthrough ---- */
+  .walkthrough {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 20px; display: none;
+    color: var(--ink-dim); font-size: 13px; line-height: 1.55; font-style: italic;
+  }
+  .walkthrough.active { display: block; }
+  .walkthrough strong { color: var(--ink); font-weight: 600; }
+
+  /* ---- Results strip ---- */
+  .results { margin-bottom: 24px; }
   .results-eyebrow {
     display: flex; align-items: center; gap: 7px; margin: 0 2px 9px;
     color: var(--ink-faint); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
   }
   .results-eyebrow .live { color: var(--good); }
   .results-eyebrow .live::before { content: "\25CF"; font-size: 8px; margin-right: 4px; vertical-align: middle; }
-  .kpis { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 12px; }
+  .kpis { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; }
   .kpi {
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
   }
@@ -56,26 +92,62 @@
   .kpi.primary .num { color: var(--human); }
   .kpi .unit { font-size: 14px; font-weight: 600; color: var(--ink-dim); margin-left: 4px; }
   .kpi .note { color: var(--ink-faint); font-size: 11px; margin-top: 5px; }
-  .resolves { color: var(--ink-dim); font-size: 12.5px; margin: 10px 2px 0; }
-  .resolves b { color: var(--ink); font-weight: 700; }
-  .delta {
+  .insight {
     margin-top: 10px; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600;
-    background: rgba(255,93,108,.10); border: 1px solid rgba(255,93,108,.30); color: #ff8d98;
+    display: none;
   }
-  .delta.hidden { display: none; }
+  .insight.active { display: block; }
+  .insight.warn { background: rgba(255,93,108,.10); border: 1px solid rgba(255,93,108,.30); color: #ff8d98; }
+  .insight.good { background: rgba(56,211,159,.10); border: 1px solid rgba(56,211,159,.30); color: var(--good); }
+  .insight.info { background: rgba(124,92,255,.10); border: 1px solid rgba(124,92,255,.30); color: #a78bfa; }
+
+  /* ---- Headcount build-up ---- */
+  .buildup {
+    margin-top: 12px; padding: 12px 16px; border-radius: 10px;
+    background: var(--panel); border: 1px solid var(--line);
+  }
+  .buildup-title {
+    font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+    color: var(--ink-faint); margin-bottom: 4px;
+  }
+  .buildup-legend { font-size: 11.5px; color: var(--ink-faint); line-height: 1.4; margin-bottom: 10px; }
+  .buildup-row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; }
+  .bnode {
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    padding: 7px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line);
+    min-width: 64px;
+  }
+  .bnode.is-final { border-color: rgba(91,157,255,.45); background: linear-gradient(135deg, rgba(91,157,255,.12), rgba(91,157,255,.03)); }
+  .bnode .bval { font-size: 20px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .bnode.is-final .bval { color: var(--human); }
+  .bnode .blabel { font-size: 10.5px; color: var(--ink-faint); line-height: 1.2; }
+  .bdelta {
+    display: flex; align-items: center; font-size: 12px; font-weight: 700;
+    padding: 0 4px; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .bdelta.up { color: var(--floor); }
+  .bdelta.down { color: var(--good); }
+
+  /* ---- Why no sweet spot ---- */
+  .cap-why {
+    color: var(--ink-dim); font-size: 11.5px; line-height: 1.45; margin: 10px 0 0;
+    padding: 9px 12px; border-radius: 8px;
+    background: rgba(255,180,84,.06); border: 1px solid rgba(255,180,84,.18);
+  }
+  .cap-why b { color: var(--cost); font-weight: 700; }
 
   /* ---- Grid ---- */
-  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .grid { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
   .panel h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 14px; font-weight: 700; }
 
   /* ---- Inputs ---- */
   .group-label {
-    font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint);
-    font-weight: 700; margin: 16px 0 9px; padding-bottom: 5px; border-bottom: 1px solid var(--line);
+    font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim);
+    font-weight: 700; margin: 24px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line);
   }
   .group-label:first-of-type { margin-top: 0; }
-  .lever { margin-bottom: 11px; }
+  .lever { margin-bottom: 16px; }
   .lever .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; gap: 8px; }
   .lever label { color: var(--ink-dim); font-size: 12.5px; }
   .lever .val { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; white-space: nowrap; }
@@ -89,13 +161,44 @@
   .tip { border-bottom: 1px dotted var(--ink-faint); cursor: help; }
   .sub { color: var(--ink-faint); font-size: 11px; margin-top: 3px; }
   .err { color: var(--floor); font-size: 11.5px; margin-top: 4px; min-height: 0; }
-
   .radio-group { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+  .radio-group.radio-row { flex-direction: row; gap: 14px; }
   .radio-group label { display: flex; align-items: center; gap: 8px; color: var(--ink-dim); font-size: 12.5px; cursor: pointer; }
   .radio-group input { accent-color: var(--accent); }
 
+  /* ---- Stage visibility ---- */
+  .stage-group { display: none; }
+  .stage-group.active { display: block; }
+
+  .stage-summary {
+    display: none; padding: 9px 12px; border-radius: 8px; margin-bottom: 8px;
+    background: var(--panel-2); border: 1px solid var(--line);
+    cursor: pointer; transition: background .15s;
+  }
+  .stage-summary:hover { background: rgba(42,47,58,.8); }
+  .stage-summary.visible { display: block; }
+  .summary-label {
+    font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+    color: var(--ink-faint); margin-bottom: 2px;
+  }
+  .summary-val { font-size: 12px; font-weight: 600; color: var(--ink-dim); }
+
+  .stage-nav {
+    display: flex; justify-content: space-between; margin-top: 16px; padding-top: 12px;
+    border-top: 1px solid var(--line);
+  }
+  .stage-nav button {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
+    border-radius: 8px; padding: 7px 18px; font: inherit; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .stage-nav button:hover { background: var(--line); color: var(--ink); }
+  .stage-nav button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .stage-nav button.primary:hover { background: #6a4de0; }
+  .stage-nav button.hidden { visibility: hidden; }
+
   /* ---- Charts ---- */
-  .charts { display: flex; flex-direction: column; gap: 16px; }
+  .charts { display: flex; flex-direction: column; gap: 24px; }
   .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; }
   .chart-head .title { font-size: 13px; font-weight: 700; color: var(--ink); }
   .regime {
@@ -108,39 +211,68 @@
   .chart-box { position: relative; height: 228px; }
   .hero-box { height: 250px; }
 
-  @media (max-width: 860px) {
+  @media (max-width: 920px) {
     .grid { grid-template-columns: 1fr; }
     .kpis { grid-template-columns: 1fr; }
+    .stepper { grid-template-columns: repeat(2, 1fr); }
+    .step { padding: 10px 12px; }
+    .step-label { font-size: 11px; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- ============ STEPPER ============ -->
+  <nav class="stepper">
+    <button class="step" data-stage="1"><span class="step-num">1</span><span class="step-label">How many human agents</span></button>
+    <button class="step" data-stage="2"><span class="step-num">2</span><span class="step-label">What AI does to that</span></button>
+    <button class="step" data-stage="3"><span class="step-num">3</span><span class="step-label">When volume grows</span></button>
+  </nav>
+
   <header>
-    <h1>More AI agents &ne; fewer humans.</h1>
-    <p>AI clears the easy contacts first. What&rsquo;s left stops being a volume game and becomes an AHT game - you can&rsquo;t staff the leftover share at your old average handle time.</p>
+    <h1 id="stage-h1"></h1>
+    <p id="stage-sub"></p>
   </header>
 
-  <!-- ============ RESULTS STRIP (the answer) ============ -->
+  <!-- ============ WALKTHROUGH BLOCKS ============ -->
+  <div class="walkthrough" data-stage="1">
+    <strong>AI agents clear the easy contacts first</strong>, so what&rsquo;s left for human agents is the hard, slow work &mdash; sizing the team on your average handle time runs low every time. And the share AI can&rsquo;t resolve always comes back, so there&rsquo;s a <strong>floor of human agents you can&rsquo;t staff below</strong>.
+  </div>
+  <div class="walkthrough" data-stage="2">
+    AI moves headcount two ways at once: checking AI&rsquo;s work <strong>pushes the floor up</strong>, AI assisting your team <strong>pulls it back down</strong>. Set both below and watch where it settles.
+  </div>
+  <div class="walkthrough" data-stage="3">
+    For most teams the real win from AI isn&rsquo;t a smaller team &mdash; it&rsquo;s handling more contacts without hiring at the same pace. Set your expected growth and see how many hires AI absorbs.
+  </div>
+
+  <!-- ============ RESULTS STRIP ============ -->
   <section class="results" aria-live="polite">
     <div class="results-eyebrow"><span class="live">Live result</span> - recalculates as you change the numbers below</div>
     <div class="kpis">
       <div class="kpi primary">
-        <div class="label">Humans you still need</div>
-        <div class="num"><span id="kpi-humans"></span><span class="unit">humans</span></div>
+        <div class="label">Human agents you still need</div>
+        <div class="num"><span id="kpi-humans"></span><span class="unit">human agents</span></div>
       </div>
       <div class="kpi">
-        <div class="label">Blended cost per contact</div>
+        <div class="label">Cost per contact</div>
         <div class="num" id="kpi-cost"></div>
-        <div class="note">AI fees + human labor, over all contacts</div>
+        <div class="note">AI fees + human-agent time, across every contact</div>
       </div>
       <div class="kpi">
-        <div class="label">Weekly human cost</div>
+        <div class="label">Weekly team cost</div>
         <div class="num" id="kpi-weekly"></div>
+        <div class="note">human agents &times; all-in weekly cost each</div>
       </div>
     </div>
-    <p class="resolves" id="resolves"></p>
-    <div class="delta hidden" id="delta"></div>
+    <div class="buildup">
+      <div class="buildup-title">How the human-agent count builds up, at <span id="buildup-cov"></span>% routed to AI</div>
+      <div class="buildup-legend">Start from the count a flat average gives you, then each step is what reality adds or removes. The last box is your real number.</div>
+      <div class="buildup-row" id="buildup-row"></div>
+    </div>
+    <div class="insight warn" id="insight-1"></div>
+    <div class="insight info" id="insight-2"></div>
+    <div class="insight good" id="insight-3"></div>
   </section>
 
   <div class="grid">
@@ -148,101 +280,153 @@
     <div class="panel">
       <h2>Your numbers</h2>
 
-      <div class="group-label">Volume</div>
-      <div class="lever">
-        <div class="row"><label for="volume">Weekly contacts</label><span class="val" id="volume-v"></span></div>
-        <input type="number" id="volume" value="10000" min="0" step="500">
+      <!-- Collapsed summaries for completed stages -->
+      <div class="stage-summary" data-stage="1" id="summary-1">
+        <div class="summary-label">How many human agents</div>
+        <div class="summary-val" id="summary-1-val"></div>
+      </div>
+      <div class="stage-summary" data-stage="2" id="summary-2">
+        <div class="summary-label">What AI does to that</div>
+        <div class="summary-val" id="summary-2-val"></div>
       </div>
 
-      <div class="group-label">AI agents</div>
-      <div class="lever swept-lever">
-        <div class="row"><label for="coverage">% sent to AI agents <span style="color:var(--human)">&#9664; swept</span></label><span class="val swept" id="coverage-v"></span></div>
-        <input type="range" id="coverage" value="70" min="0" max="100" step="1">
-      </div>
-      <div class="lever">
-        <div class="row"><label for="success"><span class="tip" title="Of the contacts you send to AI agents, the share they fully resolve without a human. The rest bounce back to your team.">Resolution rate</span></label><span class="val" id="success-v"></span></div>
-        <input type="range" id="success" value="85" min="1" max="100" step="1">
-      </div>
-
-      <div class="group-label">Human handling</div>
-      <div class="lever">
-        <div class="row"><label for="easy"><span class="tip" title="Human minutes to close your easiest contacts. AI agents clear these first, so few survive to a human.">Handle time - easy contact</span></label><span class="val" id="easy-v"></span></div>
-        <input type="number" id="easy" value="4" min="0" step="0.5">
-      </div>
-      <div class="lever">
-        <div class="row"><label for="hard"><span class="tip" title="Human minutes to close your hardest contacts. As AI agents take more, the work that remains skews toward these.">Handle time - hard contact</span></label><span class="val" id="hard-v"></span></div>
-        <input type="number" id="hard" value="25" min="0" step="0.5">
-        <p class="err" id="aht-err"></p>
-      </div>
-      <div class="lever">
-        <div class="row"><label for="prodhrs">Productive hrs / human / wk</label><span class="val" id="prodhrs-v"></span></div>
-        <input type="number" id="prodhrs" value="32" min="1" step="1">
-      </div>
-      <div class="lever">
-        <div class="row"><label for="rate">Cost / human-hour</label><span class="val" id="rate-v"></span></div>
-        <input type="number" id="rate" value="28" min="0" step="1">
-        <div class="sub" id="loaded-sub"></div>
-      </div>
-
-      <div class="group-label">AI cost</div>
-      <div class="lever">
-        <div class="radio-group">
-          <label><input type="radio" name="mode" value="attempt"> Bill per attempt <span class="sub" style="display:inline">(every contact AI touches)</span></label>
-          <label><input type="radio" name="mode" value="resolution" checked> Bill per resolution <span class="sub" style="display:inline">(only contacts AI resolves)</span></label>
+      <!-- Stage 1: Staffing -->
+      <section class="stage-group" data-stage="1">
+        <div class="group-label">Volume</div>
+        <div class="lever">
+          <div class="row"><label for="volume">Weekly contacts</label><span class="val" id="volume-v"></span></div>
+          <input type="number" id="volume" value="10000" min="0" step="500">
         </div>
-      </div>
-      <div class="lever">
-        <div class="row"><label for="fee">AI fee</label><span class="val" id="fee-v"></span></div>
-        <input type="number" id="fee" value="0.90" min="0" step="0.05">
+
+        <div class="group-label">AI agents</div>
+        <div class="lever swept-lever">
+          <div class="row"><label for="coverage">% sent to AI agents <span style="color:var(--human)">&#9664; shown across the charts</span></label><span class="val swept" id="coverage-v"></span></div>
+          <input type="range" id="coverage" value="70" min="0" max="100" step="1">
+        </div>
+        <div class="lever">
+          <div class="row"><label for="success"><span class="tip" title="Of the contacts you route to AI agents, the share they resolve with no human agent involved. The rest come back to the team.">AI resolution rate</span></label><span class="val" id="success-v"></span></div>
+          <input type="range" id="success" value="85" min="1" max="100" step="1">
+        </div>
+
+        <div class="group-label">Human agents</div>
+        <div class="lever">
+          <div class="row"><label for="easy"><span class="tip" title="Minutes for a human agent to close your easiest contacts. AI agents clear these first, so few reach a human.">Handle time - easy contacts</span></label><span class="val" id="easy-v"></span></div>
+          <input type="number" id="easy" value="4" min="0" step="0.5">
+        </div>
+        <div class="lever">
+          <div class="row"><label for="hard"><span class="tip" title="Minutes for a human agent to close your hardest contacts. As AI agents take more, the work left over leans toward these.">Handle time - hard contacts</span></label><span class="val" id="hard-v"></span></div>
+          <input type="number" id="hard" value="25" min="0" step="0.5">
+          <p class="err" id="aht-err"></p>
+        </div>
+        <div class="lever">
+          <div class="row"><label for="prodhrs">Productive hrs / human agent / wk</label><span class="val" id="prodhrs-v"></span></div>
+          <input type="number" id="prodhrs" value="32" min="1" step="1">
+        </div>
+        <div class="lever">
+          <div class="row"><label for="rate">Cost / human agent-hour</label><span class="val" id="rate-v"></span></div>
+          <input type="number" id="rate" value="28" min="0" step="1">
+          <div class="sub" id="loaded-sub"></div>
+        </div>
+
+        <div class="group-label">AI cost</div>
+        <div class="lever">
+          <div class="radio-group">
+            <label><input type="radio" name="mode" value="attempt"> Bill per attempt <span class="sub" style="display:inline">(every contact AI agents touch)</span></label>
+            <label><input type="radio" name="mode" value="resolution" checked> Bill per resolution <span class="sub" style="display:inline">(only the ones AI agents resolve)</span></label>
+          </div>
+        </div>
+        <div class="lever">
+          <div class="row"><label for="fee">AI fee</label><span class="val" id="fee-v"></span></div>
+          <input type="number" id="fee" value="0.90" min="0" step="0.05">
+        </div>
+      </section>
+
+      <!-- Stage 2: What AI does to that (checking + speed-up) -->
+      <section class="stage-group" data-stage="2">
+        <div class="group-label">Oversight</div>
+        <div class="lever">
+          <div class="row"><label for="supmin"><span class="tip" title="Human-agent minutes spent per AI resolution: QA on AI answers, catching repeat contacts, fixing help-doc gaps.">Oversight per AI resolution</span></label><span class="val" id="supmin-v"></span></div>
+          <input type="number" id="supmin" value="0" min="0" step="0.25">
+          <div class="sub">human-agent minutes per AI resolution</div>
+        </div>
+
+        <div class="group-label">AI assist</div>
+        <div class="lever">
+          <div class="row"><label for="assistsave"><span class="tip" title="On the contacts your team keeps, AI drafts replies, pulls up history, summarizes. A human agent still finishes, but faster. This is the overall cut to your team's handle time.">Handle time AI assist saves</span></label><span class="val" id="assistsave-v"></span></div>
+          <input type="range" id="assistsave" value="0" min="0" max="60" step="1">
+          <div class="sub">e.g. AI assists 40% of contacts and makes each 30% faster = 12% saved</div>
+        </div>
+      </section>
+
+      <!-- Stage 3: When volume grows -->
+      <section class="stage-group" data-stage="3">
+        <div class="group-label">Growth</div>
+        <div class="lever">
+          <div class="row"><label for="growth"><span class="tip" title="How much you expect weekly contacts to rise. The takeaway below compares hiring with AI vs without.">Volume growth</span></label><span class="val" id="growth-v"></span></div>
+          <input type="number" id="growth" value="0" min="0" step="5">
+          <div class="sub">% more contacts per week</div>
+        </div>
+      </section>
+
+      <!-- Stage navigation -->
+      <div class="stage-nav">
+        <button id="btn-back">&#8592; Back</button>
+        <button id="btn-next" class="primary">Next &#8594;</button>
       </div>
     </div>
 
     <!-- ============ RIGHT: CHARTS ============ -->
     <div class="charts">
       <div class="panel">
-        <div class="chart-head"><span class="title">Humans you still need, as AI takes more</span></div>
-        <p class="cap"><b style="color:var(--human)">Blue</b> = humans you really need. <b style="color:#8b93a3">Grey</b> = the under-count from staffing on average. <b style="color:var(--floor)">Red</b> = the floor, even at 100% AI. The blue-grey gap is the shortfall.</p>
+        <div class="chart-head"><span class="title">Human agents you still need, as AI agents take more</span></div>
+        <p class="cap"><b style="color:var(--human)">Blue</b> = what you really need. <b style="color:#8b93a3">Grey</b> = what a flat average says. <b style="color:var(--floor)">Red</b> = the floor, even at 100% AI. The blue&ndash;grey gap is your shortfall.</p>
         <div class="chart-box hero-box"><canvas id="hcChart"></canvas></div>
       </div>
 
       <div class="panel">
-        <div class="chart-head"><span class="title">Cost per contact (AI + human, blended)</span><span class="regime" id="regime"></span></div>
+        <div class="chart-head"><span class="title">Cost per contact (AI fees + human-agent time)</span><span class="regime" id="regime"></span></div>
         <p class="cap" id="cost-cap"></p>
         <div class="chart-box"><canvas id="costChart"></canvas></div>
-        <p class="caveat">Clean-model result - real WFM can re-add a mid-range sweet spot via staffing steps, shift minimums, vendor tiers, fixed fees, or SLA penalties.</p>
+        <p class="cap-why"><b>Why there's no "best" coverage:</b> in this model, cost only ever bottoms out at one of the ends &mdash; all AI or none, never the middle. The badge above names which end wins for your inputs.</p>
+        <p class="caveat">Clean-math version. Real life can bring a middle sweet spot back: whole-person hiring, minimum shift staffing, bulk AI discounts, flat platform fees.</p>
       </div>
     </div>
   </div>
+
 </div>
 
 <script>
 // ---------- read inputs ----------
 function readInputs() {
   return {
-    volume:  +document.getElementById('volume').value,
-    coverage:+document.getElementById('coverage').value / 100,
-    success: +document.getElementById('success').value / 100,
-    easy:    +document.getElementById('easy').value,
-    hard:    +document.getElementById('hard').value,
-    prodHrs: +document.getElementById('prodhrs').value,
-    rate:    +document.getElementById('rate').value,
-    fee:     +document.getElementById('fee').value,
-    mode:    document.querySelector('input[name="mode"]:checked').value,
+    volume:      +document.getElementById('volume').value,
+    coverage:    +document.getElementById('coverage').value / 100,
+    success:     +document.getElementById('success').value / 100,
+    easy:        +document.getElementById('easy').value,
+    hard:        +document.getElementById('hard').value,
+    prodHrs:     +document.getElementById('prodhrs').value,
+    rate:        +document.getElementById('rate').value,
+    fee:         +document.getElementById('fee').value,
+    mode:        document.querySelector('input[name="mode"]:checked').value,
+    supMin:      +document.getElementById('supmin').value,
+    growth:      +document.getElementById('growth').value / 100,
+    assistSave:  +document.getElementById('assistsave').value / 100,
   };
 }
 
-// ---------- the model (unchanged - verified against the spec sample) ----------
+// ---------- the model ----------
 function derive(cov, p) {
-  const a            = cov * p.success;                       // effective automation
+  const a            = cov * p.success;
   const humanTickets = p.volume * (1 - a);
-  const baseAHT      = (p.easy + p.hard) / 2;                 // naive math uses this
-  const resAHT       = p.easy + (p.hard - p.easy) * (1 + a) / 2; // avg over surviving slice [a,1]
-  const humanHours   = humanTickets * resAHT / 60;
-  const headcount    = humanHours / p.prodHrs;
-  const naiveHC      = humanTickets * baseAHT / 60 / p.prodHrs;
-
+  const baseAHT      = (p.easy + p.hard) / 2;
+  const resAHT       = p.easy + (p.hard - p.easy) * (1 + a) / 2;
   const attempts     = p.volume * cov;
   const resolutions  = p.volume * a;
+  const assistMix    = 1 - p.assistSave;
+  const supHours     = resolutions * p.supMin / 60;
+  const humanHours   = humanTickets * resAHT * assistMix / 60 + supHours;
+  const headcount    = humanHours / p.prodHrs;
+  const naiveHC      = humanTickets * baseAHT / 60 / p.prodHrs;
   const aiCost       = p.mode === 'attempt' ? attempts * p.fee : resolutions * p.fee;
   const humanCost    = humanHours * p.rate;
   const blended      = (aiCost + humanCost) / p.volume;
@@ -250,7 +434,6 @@ function derive(cov, p) {
   return { a, humanTickets, baseAHT, resAHT, humanHours, headcount, naiveHC, blended };
 }
 
-// sweep % sent to AI 0..1
 const N = 101;
 function sweep(p) {
   const xs = [], hc = [], naive = [], cost = [];
@@ -265,7 +448,6 @@ function sweep(p) {
   return { xs, hc, naive, cost };
 }
 
-// classify the cost curve: concave => min is always at an end, max may be interior
 function classifyRegime(cost) {
   const start = cost[0], end = cost[cost.length - 1];
   let maxIdx = 0;
@@ -289,6 +471,151 @@ function classifyRegime(cost) {
 const fmt0 = n => Math.round(n).toLocaleString();
 const money = n => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const moneyK = n => '$' + (n / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 }) + 'k';
+
+// ---------- stage management ----------
+let currentStage = 1;
+const MAX_STAGE = 3;
+
+const STAGE_COPY = {
+  1: {
+    h1: 'How many human agents do you actually need?',
+    sub: 'AI agents clear the easy contacts first, so the ones left for human agents are the hard, slow ones. A flat average misses that.',
+  },
+  2: {
+    h1: 'What AI really does to that number',
+    sub: 'Oversight on AI resolutions pushes headcount up. AI assist on the rest pulls it down. The real number is where they settle.',
+  },
+  3: {
+    h1: 'What happens when volume grows?',
+    sub: 'For most teams the payoff isn’t a smaller team. It’s handling more contacts without hiring at the same pace.',
+  },
+};
+
+function setStage(n) {
+  if (n < 1 || n > MAX_STAGE) return;
+  currentStage = n;
+
+  document.querySelectorAll('.step').forEach(el => {
+    const s = +el.dataset.stage;
+    el.classList.toggle('is-active', s === n);
+    el.classList.toggle('is-done', s < n);
+    el.classList.toggle('is-future', s > n);
+  });
+
+  document.getElementById('stage-h1').textContent = STAGE_COPY[n].h1;
+  document.getElementById('stage-sub').textContent = STAGE_COPY[n].sub;
+
+  document.querySelectorAll('.walkthrough').forEach(el => {
+    el.classList.toggle('active', +el.dataset.stage === n);
+  });
+
+  document.querySelectorAll('.stage-group').forEach(el => {
+    el.classList.toggle('active', +el.dataset.stage === n);
+  });
+
+  document.querySelectorAll('.stage-summary').forEach(el => {
+    el.classList.toggle('visible', +el.dataset.stage < n);
+  });
+
+  document.getElementById('btn-back').classList.toggle('hidden', n === 1);
+  document.getElementById('btn-next').classList.toggle('hidden', n === MAX_STAGE);
+
+  update();
+}
+
+function renderSummaries(now, p) {
+  const gap = now.headcount - now.naiveHC;
+  document.getElementById('summary-1-val').textContent =
+    fmt0(now.headcount) + ' human agents needed. A flat average says ' + fmt0(now.naiveHC)
+    + ', so you\'d be ' + fmt0(gap) + ' short.';
+
+  if (p.supMin > 0 || p.assistSave > 0) {
+    var plain = derive(p.coverage, {...p, supMin: 0, assistSave: 0}).headcount;
+    var net = now.headcount - plain;
+    var dir = net > 0 ? 'up ' + fmt0(net) : net < 0 ? 'down ' + fmt0(-net) : 'unchanged';
+    document.getElementById('summary-2-val').textContent =
+      'Net effect: ' + dir + ' (now ' + fmt0(now.headcount) + ' human agents).';
+  } else {
+    document.getElementById('summary-2-val').textContent = 'No oversight or AI assist added yet.';
+  }
+}
+
+function renderBuildup(p, now) {
+  const cov = p.coverage;
+  const diff = derive(cov, {...p, supMin: 0, assistSave: 0}).headcount;  // hard tickets, no oversight/assist
+  const overs = derive(cov, {...p, assistSave: 0}).headcount;            // + oversight
+  const final = now.headcount;                                           // + AI assist
+  const r = Math.round;
+
+  const steps = [
+    { label: 'Staffed on the average', val: now.naiveHC },
+    { label: 'After hard tickets pile up', val: diff },
+  ];
+  if (r(overs) !== r(diff)) steps.push({ label: 'Oversight', val: overs });
+  if (r(final) !== r(steps[steps.length - 1].val)) steps.push({ label: 'AI assist', val: final });
+
+  document.getElementById('buildup-cov').textContent = r(cov * 100);
+
+  var html = '';
+  for (var i = 0; i < steps.length; i++) {
+    if (i > 0) {
+      var d = r(steps[i].val) - r(steps[i - 1].val);
+      var cls = d > 0 ? 'up' : d < 0 ? 'down' : '';
+      var arrow = d > 0 ? '▲' : d < 0 ? '▼' : '';
+      var txt = d === 0 ? '±0' : (d > 0 ? '+' : '−') + Math.abs(d);
+      html += '<div class="bdelta ' + cls + '">' + arrow + ' ' + txt + '</div>';
+    }
+    var isFinal = i === steps.length - 1;
+    html += '<div class="bnode' + (isFinal ? ' is-final' : '') + '">'
+      + '<span class="bval">' + fmt0(steps[i].val) + '</span>'
+      + '<span class="blabel">' + steps[i].label + '</span></div>';
+  }
+  document.getElementById('buildup-row').innerHTML = html;
+}
+
+// ---------- dynamic verdict (rule-based, reads the model's own numbers) ----------
+function verdict(p, regime) {
+  const snap        = derive(p.coverage, p);
+  const todayHead   = Math.round(snap.headcount);
+  const floorToday  = Math.round(derive(1, p).headcount);
+  const floorShare  = snap.headcount > 0 ? floorToday / snap.headcount : 0;
+
+  // Floor reality: how much can AI actually shrink this team?
+  let floorLine;
+  if (floorShare >= 0.6) {
+    floorLine = 'Even at full AI you\'d still need ' + floorToday + ' of today\'s ' + todayHead
+      + ' human agents. At a ' + Math.round(p.success * 100)
+      + '% AI resolution rate, AI won\'t shrink this team much, so don\'t plan on firing your way to it.';
+  } else if (floorShare >= 0.3) {
+    floorLine = 'Full AI takes you toward a floor of ' + floorToday + ' human agents, down from '
+      + todayHead + ' today. A real cut, but never to zero.';
+  } else {
+    floorLine = 'At this resolution rate AI can pull headcount low (floor ' + floorToday
+      + ' human agents), but there is still a floor you can\'t staff below.';
+  }
+
+  // Growth payoff: lean scaling, the real win for most teams.
+  let growthLine;
+  if (p.growth > 0) {
+    const fut      = {...p, volume: p.volume * (1 + p.growth)};
+    const withAI   = Math.round(derive(p.coverage, fut).headcount);
+    const noAI     = Math.round(derive(0, {...fut, supMin: 0, assistSave: 0}).headcount);
+    const absorbed = noAI - withAI;
+    growthLine = ' Hold this resolution rate and coverage and +' + Math.round(p.growth * 100)
+      + '% volume needs ' + withAI + ' human agents instead of ' + noAI + ' without AI - '
+      + absorbed + ' hires AI absorbs. That\'s the lever: scale lean, not to zero.';
+  } else {
+    growthLine = ' Set a growth % above to see how many new hires AI absorbs.';
+  }
+
+  // Cost caveat only when AI is actively making per-contact cost worse.
+  let costLine = '';
+  if (regime && regime.badge === "AI doesn't pay here") {
+    costLine = ' Note: at this AI fee more coverage raises cost per contact, so the win here is capacity, not savings.';
+  }
+
+  return floorLine + growthLine + costLine;
+}
 
 // ---------- charts ----------
 Chart.defaults.color = '#9aa3b2';
@@ -319,13 +646,13 @@ function buildCharts() {
     data: {
       labels: sweepData.xs,
       datasets: [
-        { label: 'Reality', data: sweepData.hc, borderColor: '#5b9dff',
+        { label: 'What you really need', data: sweepData.hc, borderColor: '#5b9dff',
           backgroundColor: 'rgba(91,157,255,.10)', fill: true, tension: .25, pointRadius: 0, borderWidth: 2.5 },
-        { label: 'Ignoring difficulty', data: sweepData.naive, borderColor: '#5a6273',
+        { label: 'Staffing on the average', data: sweepData.naive, borderColor: '#5a6273',
           borderDash: [5, 4], fill: false, tension: .25, pointRadius: 0, borderWidth: 1.5 },
       ],
     },
-    options: chartOpts('humans'),
+    options: chartOpts('human agents'),
   });
 
   costChart = new Chart(document.getElementById('costChart'), {
@@ -350,7 +677,7 @@ function chartOpts(yTitle, isCost) {
           title: items => items[0].label + '% sent to AI agents',
           label: ctx => isCost
             ? ' ' + ctx.dataset.label + ': ' + money(ctx.parsed.y)
-            : ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' humans',
+            : ' ' + ctx.dataset.label + ': ' + fmt0(ctx.parsed.y) + ' human agents',
         },
       },
       annotation: { annotations: {} },
@@ -364,7 +691,7 @@ function update() {
   const p = readInputs();
   sweepData = sweep(p);
   const now = derive(p.coverage, p);
-  const floorHC = derive(1, p).headcount;       // humans still needed at 100% sent to AI
+  const floorHC = derive(1, p).headcount;
   const fullyLoaded = p.rate * p.prodHrs;
   const regime = classifyRegime(sweepData.cost);
   const coveragePct = Math.round(p.coverage * 100);
@@ -373,37 +700,66 @@ function update() {
   const invertedAHT = p.hard < p.easy;
 
   // --- input value chips ---
-  document.getElementById('volume-v').textContent   = fmt0(p.volume) + ' / wk';
-  document.getElementById('coverage-v').textContent = coveragePct + '%';
-  document.getElementById('success-v').textContent  = successPct + '%';
-  document.getElementById('easy-v').textContent     = p.easy + ' min';
-  document.getElementById('hard-v').textContent     = p.hard + ' min';
-  document.getElementById('prodhrs-v').textContent  = p.prodHrs + ' hrs';
-  document.getElementById('rate-v').textContent     = '$' + p.rate + ' / hr';
-  document.getElementById('fee-v').textContent      = money(p.fee) + ' / ' + p.mode;
-  document.getElementById('loaded-sub').textContent = '= ' + money(fullyLoaded) + ' / human / wk fully loaded';
-  document.getElementById('aht-err').textContent    = invertedAHT
+  document.getElementById('volume-v').textContent      = fmt0(p.volume) + ' / wk';
+  document.getElementById('growth-v').textContent      = p.growth > 0 ? '+' + Math.round(p.growth * 100) + '%' : '0%';
+  document.getElementById('coverage-v').textContent    = coveragePct + '%';
+  document.getElementById('success-v').textContent     = successPct + '%';
+  document.getElementById('easy-v').textContent        = p.easy + ' min';
+  document.getElementById('hard-v').textContent        = p.hard + ' min';
+  document.getElementById('prodhrs-v').textContent     = p.prodHrs + ' hrs';
+  document.getElementById('rate-v').textContent        = '$' + p.rate + ' / hr';
+  document.getElementById('supmin-v').textContent      = p.supMin + ' min';
+  document.getElementById('assistsave-v').textContent  = Math.round(p.assistSave * 100) + '% faster';
+  document.getElementById('fee-v').textContent         = money(p.fee) + ' / ' + p.mode;
+  document.getElementById('loaded-sub').textContent    = '= ' + money(fullyLoaded) + ' / human agent / wk, all-in';
+  document.getElementById('aht-err').textContent       = invertedAHT
     ? 'Hard-contact handle time must be ≥ easy-contact handle time.' : '';
 
   // --- results strip ---
   document.getElementById('kpi-humans').textContent = fmt0(now.headcount);
   document.getElementById('kpi-cost').textContent   = money(now.blended);
   document.getElementById('kpi-weekly').textContent = moneyK(Math.round(now.headcount) * fullyLoaded);
-  document.getElementById('resolves').innerHTML =
-    'AI agents resolve <b>' + (now.a * 100).toFixed(0) + '%</b> of contacts - humans still handle <b>'
-    + fmt0(now.humanTickets) + '/wk</b>, and those are the hard ones.';
 
-  const delta = document.getElementById('delta');
-  if (invertedAHT) {
-    delta.classList.remove('hidden');
-    delta.textContent = '⚠ Fix the handle-time inputs above to read the staffing gap.';
-  } else if (Math.round(gap) > 0) {
-    delta.classList.remove('hidden');
-    delta.textContent = '⚠ You\'d be ' + fmt0(gap) + ' humans short (≈ ' + moneyK(gap * fullyLoaded)
-      + '/wk) if you staffed on average handle time.';
-  } else {
-    delta.classList.add('hidden');
+  // --- stage-specific insight callouts ---
+  for (var i = 1; i <= 3; i++) document.getElementById('insight-' + i).classList.remove('active');
+
+  if (currentStage === 1) {
+    var ins1 = document.getElementById('insight-1');
+    if (invertedAHT) {
+      ins1.classList.add('active');
+      ins1.textContent = '⚠ Fix the handle-time inputs: hard must be ≥ easy.';
+    } else if (Math.round(gap) > 0) {
+      ins1.classList.add('active');
+      var gapR = Math.round(now.headcount) - Math.round(now.naiveHC);
+      ins1.textContent = 'Even at 100% routed to AI, the ' + Math.round((1 - p.success) * 100)
+        + '% AI can\'t resolve comes back to your team, so you still need ' + fmt0(floorHC)
+        + ' human agents, the floor. Size on the average today and you\'re ' + gapR
+        + ' human agents short, about ' + moneyK(gapR * fullyLoaded)
+        + '/wk of loaded human-agent capacity you didn\'t budget for.';
+    }
   }
+
+  if (currentStage === 2) {
+    var ins2 = document.getElementById('insight-2');
+    ins2.classList.add('active');
+    if (p.supMin > 0 || p.assistSave > 0) {
+      var floorPlain = derive(1, {...p, supMin: 0, assistSave: 0}).headcount;
+      ins2.textContent = 'Your floor moves from ' + fmt0(floorPlain) + ' to ' + fmt0(floorHC)
+        + ' human agents. At today\'s ' + coveragePct + '% to AI, you need '
+        + fmt0(now.headcount) + '.';
+    } else {
+      ins2.textContent = 'Add oversight or AI assist below to watch the floor move.';
+    }
+  }
+
+  if (currentStage === 3) {
+    var ins3 = document.getElementById('insight-3');
+    ins3.classList.add('active');
+    ins3.textContent = verdict(p, regime);
+  }
+
+  renderBuildup(p, now);
+  renderSummaries(now, p);
 
   // --- cost chart head ---
   document.getElementById('regime').textContent = regime.badge;
@@ -416,13 +772,13 @@ function update() {
   hcChart.data.datasets[0].data = sweepData.hc;
   hcChart.data.datasets[1].data = sweepData.naive;
   hcChart.options.plugins.annotation.annotations = {
-    coverageLine: vLine(coveragePct, '#5b9dff', coveragePct + '% sent to AI'),
+    coverageLine: vLine(coveragePct, '#5b9dff', coveragePct + '% to AI agents'),
     floorLine: {
       type: 'line', yMin: floorHC, yMax: floorHC,
       borderColor: '#ff5d6c', borderWidth: 1.5, borderDash: [6, 4],
       label: {
         display: true,
-        content: floorHC < 0.5 ? 'Floor: 0 humans' : 'Floor: ' + fmt0(floorHC) + ' humans',
+        content: floorHC < 0.5 ? 'Floor: 0 human agents' : 'Floor: ' + fmt0(floorHC) + ' human agents',
         position: 'start', color: '#ff8d98',
         backgroundColor: 'rgba(15,17,21,.85)',
         font: { size: 10, weight: '700' }, padding: 4, yAdjust: -9,
@@ -434,7 +790,7 @@ function update() {
 
   costChart.data.labels = sweepData.xs;
   costChart.data.datasets[0].data = sweepData.cost;
-  const costAnn = {
+  var costAnn = {
     coverageLine: vLine(coveragePct, '#ffb454', money(now.blended) + ' @ ' + coveragePct + '%'),
     nowPoint: dot(coveragePct, now.blended, '#ffb454'),
   };
@@ -467,7 +823,21 @@ document.querySelectorAll('input').forEach(el => {
   el.addEventListener('change', update);
 });
 
-update();
+document.querySelectorAll('.stage-summary').forEach(el => {
+  el.addEventListener('click', function() { setStage(+el.dataset.stage); });
+});
+
+document.querySelectorAll('.step').forEach(el => {
+  el.addEventListener('click', function() {
+    var s = +el.dataset.stage;
+    if (s <= currentStage) setStage(s);
+  });
+});
+
+document.getElementById('btn-back').addEventListener('click', function() { setStage(currentStage - 1); });
+document.getElementById('btn-next').addEventListener('click', function() { setStage(currentStage + 1); });
+
+setStage(1);
 </script>
 </body>
 </html>
