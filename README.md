@@ -1,23 +1,61 @@
 # Capacity Planning - Support
 
+**AI takes the easy contacts first, so what is left is slower. There is a floor you cannot staff below, and the naive average under-hires by dozens of people.**
+
 My take on capacity planning for customer support. Set your own numbers, move the coverage slider, and watch headcount and blended cost per contact shift.
 
 Open `index.html` in a browser. That's the whole thing.
 
+## Three-step walkthrough
+
+One idea, three steps: when AI takes a share of incoming work, it takes the easy pieces first. The work left for people is slower per item, so simple averages under-count the team I need. Some work also comes back from AI, so the team never shrinks to zero.
+
+I use this scenario because it changes every figure on the screen and makes the trade-offs easy to check:
+
+| On-screen input | Value in this 20,000-contact scenario | Plain meaning |
+|---|---:|---|
+| Weekly contacts | 20,000 | Items of work arriving each week |
+| Share sent to AI | 65% | Work offered to AI first |
+| AI resolution rate | 80% | Offered work AI finishes without a person |
+| Easy handle time | 5 minutes | Time a person needs for the easiest items |
+| Hard handle time | 35 minutes | Time a person needs for the hardest items |
+| Productive time | 30 hours | Working time available per person each week |
+| Human cost | $30/hour | Fully loaded hourly cost |
+| AI fee | $0.75/resolution | Cost for each item AI finishes |
+
+### Step 1 — the average lies to me
+
+In this 20,000-contact scenario, 65% coverage and an 80% resolution rate mean AI finishes 52% of the work. Naive maths sizes the 9,600 remaining contacts at the 20-minute average and returns **107 people**.
+
+The model returns **148 people** because AI removed the five-minute contacts first, leaving work that averages about 28 minutes. Staffing the average would leave me **41 people short**, or about **$36,900 per week** of work I had not planned for.
+
+Even when all 20,000 contacts go to AI, the work it cannot finish comes back to people. In this scenario, that creates a floor of **71 people**. At the selected point, blended cost is **$7.06 per contact** and weekly team cost is **$133,200**.
+
+### Step 2 — AI pushes both ways
+
+For the same 20,000-contact scenario, I add two minutes of human oversight per AI resolution and set AI assistance to save 12% of the handle time on work people keep.
+
+The screen builds from **107 people** using the naive average, to **148** after accounting for harder remaining work, to **160** after oversight, then down to **142** after assistance. Oversight and assistance roughly cancel here. The staffing floor rises from **71 to 80 people**, blended cost falls to **$6.78 per contact**, and weekly team cost becomes **$127,800**.
+
+### Step 3 — the payoff is growth, not cuts
+
+I then raise the same scenario from 20,000 to 28,000 contacts per week, a 40% increase. The model returns **199 people with AI and 311 without it**, so AI absorbs **112 hires**.
+
+That is the claim I am willing to make: AI can help a support operation grow without hiring at the same pace. This is a what-if pressure test, not a forecast, queueing model, or staffing recommendation.
+
 ## The one idea
 
-2025 was "customer support is dead because of LLMs," or "AI does 80% of tickets so cut 80% of the team." No citations needed - everyone heard it.
+2025 was "customer support is dead because of LLMs," or "AI handles most tickets so cut most of the team." No citations needed - everyone heard it.
 
-But here's what the 2026 data actually says:
+Three 2026 reports point in a different direction:
 
-> "Just 31% have implemented, or are planning, frontline workforce reductions through layoffs... large-scale layoffs remain the exception rather than the norm, underscoring a broader shift toward workforce redesign rather than elimination." (85% are expanding agent responsibilities.)
-> - [Gartner, Apr 28 2026](https://www.gartner.com/en/newsroom/press-releases/2026-04-28-gartner-survey-finds-eighty-five-percent-of-service-and-support-leaders-are-expanding-human-agent-responsibilities-despite-expectations-of-mass-ai-layoffs)
+- [Gartner, Apr 28 2026](https://www.gartner.com/en/newsroom/press-releases/2026-04-28-gartner-survey-finds-eighty-five-percent-of-service-and-support-leaders-are-expanding-human-agent-responsibilities-despite-expectations-of-mass-ai-layoffs) reported that large layoffs remained the exception while support roles expanded.
 
-> "Over 50% of customer service organizations will double their technology spend [by 2028], without an equivalent reduction in talent." ... "Technology spend is rising rapidly, yet talent needs are evolving - not disappearing."
-> - [Gartner, Mar 31 2026](https://www.gartner.com/en/newsroom/press-releases/2026-03-31-gartner-predicts-over-50-percent-of-customer-service-organizations-will-double-their-technology-spend-by-2028)
+- [Gartner, Mar 31 2026](https://www.gartner.com/en/newsroom/press-releases/2026-03-31-gartner-predicts-over-50-percent-of-customer-service-organizations-will-double-their-technology-spend-by-2028) forecast higher technology spending without an equal reduction in people.
 
-> "55% of administrative and customer support leaders plan to increase permanent headcount in the second half of 2026." ... admin job postings "up 9% from 2024."
-> - [Robert Half, 2026](https://www.roberthalf.com/us/en/insights/research/data-reveals-which-administrative-and-customer-support-roles-are-in-highest-demand)
+- [Robert Half, 2026](https://www.roberthalf.com/us/en/insights/research/data-reveals-which-administrative-and-customer-support-roles-are-in-highest-demand) reported plans for more permanent hiring in administrative and customer-support roles.
+
+Those reports are context, not proof of this model.
 
 And the reason the survivors are slower - the exact mechanism this prototype is built around:
 
@@ -26,7 +64,7 @@ And the reason the survivors are slower - the exact mechanism this prototype is 
 
 My answer is simple: automation cuts ticket volume, but it doesn't cut support work in a straight line.
 
-The bot handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "the bot handled 70%, so cut 70%" doesn't hold.
+The bot handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "the bot handled most contacts, so cut most of the team" doesn't hold.
 
 Three things this tool shows:
 
@@ -78,7 +116,7 @@ human cost               = human hours x human $/hr
 blended $/contact        = (AI cost + human cost) / volume
 ```
 
-Inputs: weekly volume, % sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
+Inputs: weekly volume, share sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
 
 </details>
 
@@ -107,4 +145,4 @@ Four standard methods, named, in plain terms:
 1. **[Workload-to-FTE staffing](https://www.indeed.com/hire/c/info/full-time-equivalent)** - the WFM way of turning a pile of work-hours into a headcount. Add up the hours the leftover tickets will take, then divide by the hours one agent actually works in a week.
 2. **[Truncated mean](https://en.wikipedia.org/wiki/Truncated_mean)**, a.k.a. conditional tail expectation: the average of a range once you've lopped off one end. The bot takes the easy tickets, so what you're averaging is the handle time of the hard ones left behind, which runs higher than the all-tickets average.
 3. **[Cost per contact](https://www.calabrio.com/glossary/cost-per-call/)** - the standard contact-center efficiency metric. Add bot cost to human labor cost and divide by total contacts; "blended" just means both sit in one number.
-4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** is the queue-sizing math real WFM uses for live channels, and this tool deliberately stops before it. If the leftover work is phone or chat you still need Erlang-C on top; this only sizes the work left after the bot.
+4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** is the queue-sizing math real WFM uses for synchronous channels, and this tool deliberately stops before it. If the leftover work is phone or chat you still need Erlang-C on top; this only sizes the work left after the bot.
