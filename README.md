@@ -1,148 +1,71 @@
-# Capacity Planning - Support
+# When AI takes the easy support work
 
-**AI takes the easy contacts first, so what is left is slower. There is a floor you cannot staff below, and the naive average under-hires by dozens of people.**
+I think the wrong question in the AI-and-support debate is: “How many tickets did the model handle?” The useful question is: “What work is left, how long does it take, and what does the whole system cost?”
 
-My take on capacity planning for customer support. Set your own numbers, move the coverage slider, and watch headcount and blended cost per contact shift.
+LLMs can take a meaningful share of customer contacts. They can also cut the cost of a support operation. I do not think either fact proves that a team should make proportional layoffs.
 
-Open `index.html` in a browser. That's the whole thing.
+This does not make support employment safe, or require every team to grow. A company can cut roles, and a system that resolves work cheaply and reliably can lower staffing needs.
 
-## Three-step walkthrough
+My argument is narrower. A count of contacts resolved by AI is not a count of human hours removed. It is not a staffing plan. It is not evidence that the remaining team can be reduced in the same proportion.
 
-One idea, three steps: when AI takes a share of incoming work, it takes the easy pieces first. The work left for people is slower per item, so simple averages under-count the team I need. Some work also comes back from AI, so the team never shrinks to zero.
+Support work is not a neat average. A team gets password resets, delivery disputes, broken integrations, and cases where the first answer did not work. If an LLM takes the simple questions first, the work left for people may take more judgment, investigation, and care.
 
-I use this scenario because it changes every figure on the screen and makes the trade-offs easy to check:
+That is the premise of my [capacity model](https://github.com/gititya/support-capacity-planning): a what-if calculation, not a forecast. It assumes AI resolves easier contacts first, unresolved work returns to people, and the remaining human work takes longer. That premise may be wrong for a given queue. Easy for a person is not automatically easy for a model.
 
-| On-screen input | Value in this 20,000-contact scenario | Plain meaning |
-|---|---:|---|
-| Weekly contacts | 20,000 | Items of work arriving each week |
-| Share sent to AI | 65% | Work offered to AI first |
-| AI resolution rate | 80% | Offered work AI finishes without a person |
-| Easy handle time | 5 minutes | Time a person needs for the easiest items |
-| Hard handle time | 35 minutes | Time a person needs for the hardest items |
-| Productive time | 30 hours | Working time available per person each week |
-| Human cost | $30/hour | Fully loaded hourly cost |
-| AI fee | $0.75/resolution | Cost for each item AI finishes |
+## A scenario that saves money
 
-### Step 1 — the average lies to me
+The model does show a substantial saving under its stated assumptions. Start with 20,000 weekly contacts. Route 65% to AI. Let AI resolve 80% of what it receives. Give simple contacts a five-minute human handle time and hard contacts 35 minutes. Give each person 30 productive hours a week, at $30 an hour. Charge AI $0.75 for each resolved contact.
 
-In this 20,000-contact scenario, 65% coverage and an 80% resolution rate mean AI finishes 52% of the work. Naive maths sizes the 9,600 remaining contacts at the 20-minute average and returns **107 people**.
+AI resolves 10,400 contacts in that scenario. People still receive 9,600 contacts: 7,000 contacts never go to AI, and 2,600 routed contacts come back. The model puts the remaining work at 27.8 minutes per contact, because the easier part has been removed. That produces about 148 full-time equivalents of workload before any review of AI output or assistance for the remaining staff. These are workload equivalents, rounded to the nearest whole number, not a roster that accounts for shifts and service targets. A flat 20-minute average would have said 107. That would understate the workload by 41 people in this model.
 
-The model returns **148 people** because AI removed the five-minute contacts first, leaving work that averages about 28 minutes. Staffing the average would leave me **41 people short**, or about **$36,900 per week** of work I had not planned for.
+Now add two minutes of human oversight for each AI resolution. The model rises to 160 people. Then add AI assistance that saves 12% of the handle time on the work people keep. It falls to 142.
 
-Even when all 20,000 contacts go to AI, the work it cannot finish comes back to people. In this scenario, that creates a floor of **71 people**. At the selected point, blended cost is **$7.06 per contact** and weekly team cost is **$133,200**.
+Compare that with the same model with no AI: 222 people. At the selected inputs, the AI case has a real modeled cost saving. Human work plus AI fees totals about $135,627 a week, compared with $200,000 for the no-AI case. The 142 figure is not an argument against savings. It is an argument for counting the work and the fees before declaring the savings.
 
-### Step 2 — AI pushes both ways
+The arithmetic is inspectable. The model counts AI resolutions, residual human hours, oversight, assistance, and AI fees. It does not model arrival patterns, service targets, training, quality failures, rework, wage changes, vendor minimums, or system-management cost. A real workforce plan needs those things.
 
-For the same 20,000-contact scenario, I add two minutes of human oversight per AI resolution and set AI assistance to save 12% of the handle time on work people keep.
+“AI handled 52% of contacts” and “we can remove 52% of people” are different statements. Here, AI resolves 52% of contacts, while staffing moves from 222 to 142, a 36% reduction. That difference follows from the inputs. Another queue can differ. Measure it.
 
-The screen builds from **107 people** using the naive average, to **148** after accounting for harder remaining work, to **160** after oversight, then down to **142** after assistance. Oversight and assistance roughly cancel here. The staffing floor rises from **71 to 80 people**, blended cost falls to **$6.78 per contact**, and weekly team cost becomes **$127,800**.
+## Volume, workload, and cost are three different numbers
 
-### Step 3 — the payoff is growth, not cuts
+Support leaders need to keep three measures apart.
 
-I then raise the same scenario from 20,000 to 28,000 contacts per week, a 40% increase. The model returns **199 people with AI and 311 without it**, so AI absorbs **112 hires**.
+**Volume** is contacts arriving. Total customer demand and contacts reaching people are separate counts; automation can reduce the second without reducing the first.
 
-That is the claim I am willing to make: AI can help a support operation grow without hiring at the same pace. This is a what-if pressure test, not a forecast, queueing model, or staffing recommendation.
+**Workload** is the human time needed for the contacts that remain, plus the time needed to review, correct, and support the AI. It tells me staffing pressure.
 
-## The one idea
+**Net cost** is human labor, AI fees, and the other operating costs I choose to include. It tells me whether the intervention pays for itself.
 
-2025 was "customer support is dead because of LLMs," or "AI handles most tickets so cut most of the team." No citations needed - everyone heard it.
+AI can reduce contacts reaching people while their workload falls by a smaller proportion. It can lower workload while net cost rises if the vendor fee or oversight burden is high. It can reduce both human contacts and workload while also lowering net cost. I do not need to pretend those outcomes are the same to make the case for careful capacity planning.
 
-Three 2026 reports point in a different direction:
+There is useful evidence for both the assistance case and the need for restraint. The NBER study of a staggered rollout to 5,179 customer-support agents found a 14% average rise in issues resolved per hour, with larger gains for novice and lower-skilled workers and little effect for the most experienced group. That is evidence that AI can improve human productivity in one deployment; it is not a universal staffing ratio. [NBER working paper](https://www.nber.org/papers/w31161)
 
-- [Gartner, Apr 28 2026](https://www.gartner.com/en/newsroom/press-releases/2026-04-28-gartner-survey-finds-eighty-five-percent-of-service-and-support-leaders-are-expanding-human-agent-responsibilities-despite-expectations-of-mass-ai-layoffs) reported that large layoffs remained the exception while support roles expanded.
+Klarna’s 2025 annual report says its AI assistant handled 80% of customer-service chats during 2025. The filing also estimates $39 million of savings in 2024, based on internal data after the assistant launched. That is a serious company result and a useful case to inspect. It is still the company’s estimate, not independent proof that another support operation will get the same result. [Klarna Form 20-F](https://www.sec.gov/Archives/edgar/data/2003292/000200329226000007/klar-20251231.htm)
 
-- [Gartner, Mar 31 2026](https://www.gartner.com/en/newsroom/press-releases/2026-03-31-gartner-predicts-over-50-percent-of-customer-service-organizations-will-double-their-technology-spend-by-2028) forecast higher technology spending without an equal reduction in people.
+The wider picture does not settle the employment question. Gartner reported that 85% of 321 surveyed support leaders were expanding human-agent responsibilities as AI reduced volume and shifted work, while 31% had implemented or planned AI-driven layoffs through the first quarter of 2027. That is a survey of leaders, not an employment census. [Gartner, April 2026](https://www.gartner.com/en/newsroom/press-releases/2026-04-28-gartner-survey-finds-eighty-five-percent-of-service-and-support-leaders-are-expanding-human-agent-responsibilities-despite-expectations-of-mass-ai-layoffs) Gartner also forecasts that more than half of customer-service organizations will double technology spending by 2028 without an equivalent reduction in talent. A forecast is not an observed result. [Gartner, March 2026](https://www.gartner.com/en/newsroom/press-releases/2026-03-31-gartner-predicts-over-50-percent-of-customer-service-organizations-will-double-their-technology-spend-by-2028)
 
-- [Robert Half, 2026](https://www.roberthalf.com/us/en/insights/research/data-reveals-which-administrative-and-customer-support-roles-are-in-highest-demand) reported plans for more permanent hiring in administrative and customer-support roles.
+## Growth changes the decision
 
-Those reports are context, not proof of this model.
+The clearest value in the model is growth. Raise the same scenario from 20,000 to 28,000 weekly contacts. It returns 199 people with AI and 311 without it. The 112-person gap means fewer hypothetical hires in the no-AI scenario. It does not show that 112 current people were laid off, or that they would have been hired in reality.
 
-And the reason the survivors are slower - the exact mechanism this prototype is built around:
+That distinction matters. A shrinking business may cut staff. A growing business may avoid hiring at the old rate. Another may keep the team and spend capacity on follow-up or complex cases. The model cannot choose among those decisions.
 
-> "As AI absorbs routine interactions, the cases that reach a human are no longer average. They're the unresolved edge cases... the exceptions or the moments where the model lacked context or confidence." ... "Automation reduces repetitive labor while heightening accountability."
-> - [Ryan Wang (Assembled), Forbes, Apr 2 2026](https://www.forbes.com/councils/forbestechcouncil/2026/04/02/why-the-impact-of-ai-on-customer-support-isnt-what-leaders-expected/)
+## Ideas I think hold up
 
-My answer is simple: automation cuts ticket volume, but it doesn't cut support work in a straight line.
+- Measure human workload after automation, not only contacts resolved by AI.
+- Put oversight, rework, and AI fees in the same business case as labor savings.
+- Treat avoided future hiring and present-day layoffs as different claims.
 
-The bot handles the easy stuff first, so the work left for humans gets harder. Even when volume drops, the average handle time of what's left goes up. That's why "the bot handled most contacts, so cut most of the team" doesn't hold.
+## Ideas I would argue against
 
-Three things this tool shows:
+- “AI handled most contacts, so most support roles are no longer needed.”
+- “Harder remaining work proves AI cannot reduce costs.”
+- “One vendor result, survey, or model scenario tells us what every support team should do.”
 
-1. **You never get to zero people.** The bot doesn't resolve every contact it tries, and whatever it misses lands on a human. That leaves a floor no amount of extra automation can push below.
-2. That floor also needs **more people than the headline math suggests**. The bot skims the easy contacts first, so the ones left for humans are the slow, hard ones. Size that leftover at your average handle time and you'll under-hire - fewer tickets, but each takes longer.
-3. On cost, there's no sweet spot in the middle. Cost per contact usually bottoms out at one extreme, barely any automation or almost all of it. Vendor pricing can move that, so read the chart as a pressure test, not a procurement answer.
+The practical next step is simple: take one real queue, classify the work AI resolved, the work it returned, the time people spent on each, and the cost of supervision. Then test the model against that record before using it to make a staffing decision.
 
-Move the coverage slider and watch the tradeoff: fewer human tickets, harder remaining tickets, changing headcount, and blended cost per contact. Treat it as a sanity check for the lazy version of capacity planning, not a forecast.
+## Try the model
 
-## The model
+Open `index.html` in a browser and change the inputs. It is a what-if model: easier work being resolved first is an assumption to examine, not a universal fact about AI. A nonzero staffing floor depends on the chosen workload and unresolved share; it disappears for zero workload or fully resolved work with no oversight.
 
-One assumption drives everything: the bot picks off the easier contacts first, so the contacts that reach a human are the harder leftovers.
-
-From there it works out four things:
-
-1. How many contacts the bot attempts.
-2. How many it resolves.
-3. How many fall back to a human.
-4. How long that leftover human work takes.
-
-Staffing is based on those labor hours, not the raw ticket count. That's the whole point: a team can get fewer tickets and still not get the headcount cut people expect, because the tickets that are left are slower.
-
-### Model details
-
-For anyone checking the math:
-
-- effective automation = AI coverage × AI success rate
-- human tickets = total volume × unresolved share
-- human hours = human tickets × handle time of the remaining tickets
-- headcount = human hours ÷ productive hours per agent
-- blended cost/contact = (AI cost + human labor cost) ÷ total contacts
-
-The one opinionated piece is the handle-time curve: because the bot removes the easier contacts first, the average handle time of the contacts left for humans rises as coverage goes up.
-
-<details>
-<summary>Full formulas, exact</summary>
-
-```
-a (effective automation) = coverage x success
-human tickets            = volume x (1 - a)
-baseline AHT             = (easy + hard) / 2                  <- naive math uses this
-residual AHT             = easy + (hard - easy) x (1 + a)/2   <- mean over the surviving slice [a,1]
-human hours              = human tickets x residual AHT / 60
-headcount                = human hours / productive hrs per agent
-attempts                 = volume x coverage
-resolutions              = volume x a
-AI cost                  = attempts x fee (per-attempt)  OR  resolutions x fee (per-resolution)
-human cost               = human hours x human $/hr
-blended $/contact        = (AI cost + human cost) / volume
-```
-
-Inputs: weekly volume, share sent to AI, AI resolution rate, easy-contact AHT, hard-contact AHT, productive hrs/agent/wk, human $/hr, AI billing mode (per attempt | per resolution), AI fee.
-
-</details>
-
-## What this is not
-
-1. NOT a forecast, and not a replacement for WFM planning.
-2. NOT a costing model.
-3. NOT Erlang-C / queue sizing. It has no service-level target and no arrival randomness. It hands the residual off to that (see below).
-4. NOT a scheduling or rostering platform. One screen, one lever - no shifts, no saved scenarios, no headcount-by-interval.
-
-## What's in here
-
-1. `index.html` - the whole prototype. Single file, plain JS, no build, no framework, no TypeScript. Charts are Chart.js + the annotation plugin off a CDN. Open it in a browser, done.
-2. `skills/ai-capacity-planner/` - the same model packaged as an agent skill (SKILL.md + a deterministic stdlib-only Python port + references). Positioned as the layer that runs *before* classical Erlang-C capacity planning.
-
-### Want to run the skill?
-
-```bash
-python skills/ai-capacity-planner/scripts/ai_capacity_modeler.py --sample
-```
-
-## Where the logic comes from
-
-Four standard methods, named, in plain terms:
-
-1. **[Workload-to-FTE staffing](https://www.indeed.com/hire/c/info/full-time-equivalent)** - the WFM way of turning a pile of work-hours into a headcount. Add up the hours the leftover tickets will take, then divide by the hours one agent actually works in a week.
-2. **[Truncated mean](https://en.wikipedia.org/wiki/Truncated_mean)**, a.k.a. conditional tail expectation: the average of a range once you've lopped off one end. The bot takes the easy tickets, so what you're averaging is the handle time of the hard ones left behind, which runs higher than the all-tickets average.
-3. **[Cost per contact](https://www.calabrio.com/glossary/cost-per-call/)** - the standard contact-center efficiency metric. Add bot cost to human labor cost and divide by total contacts; "blended" just means both sit in one number.
-4. **[Erlang C](https://en.wikipedia.org/wiki/Erlang_(unit))** is the queue-sizing math real WFM uses for synchronous channels, and this tool deliberately stops before it. If the leftover work is phone or chat you still need Erlang-C on top; this only sizes the work left after the bot.
+The displayed headcount rounds the calculation. Cost uses the unrounded hours, so multiplying rounded headcount by weekly cost can differ slightly. This model does not account for every staffing constraint, service level or shift pattern. It is not an employment forecast or staffing recommendation.
